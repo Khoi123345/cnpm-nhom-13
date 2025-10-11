@@ -1,0 +1,70 @@
+# docker-compose cho dự án foodfast-delivery
+# Thay đổi biến môi trường và Dockerfile theo thực tế dự án của bạn
+
+version: "3.8"
+
+services:
+  delivery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: foodfast-delivery
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=foodfast
+      - DATABASE_PASSWORD=123456
+      - DATABASE_NAME=foodfastdb
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/usr/src/app
+    networks:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: foodfast-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: foodfast
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  redis:
+    image: redis:7
+    container_name: foodfast-redis
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    networks:
+      - backend
+
+  adminer:
+    image: adminer:latest
+    container_name: foodfast-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  backend:
+    driver: bridge
