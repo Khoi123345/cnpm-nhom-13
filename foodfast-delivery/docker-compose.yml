@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-# docker-compose cho dự án foodfast-delivery
-# Thay đổi biến môi trường và Dockerfile theo thực tế dự án của bạn
-
-version: "3.8"
-
-services:
-  delivery:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: foodfast-delivery
-    restart: unless-stopped
-=======
 version: "3.8"
 
 services:
@@ -21,19 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: foodfast-user-service
     restart: "no"
->>>>>>> feature/user-service
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-<<<<<<< HEAD
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - DATABASE_USER=foodfast
-      - DATABASE_PASSWORD=123456
-      - DATABASE_NAME=foodfastdb
-=======
       - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
       - JWT_EXPIRES_IN=1d
       - DB_HOST=db          
@@ -41,21 +19,16 @@ services:
       - DB_USER=foodfast
       - DB_PASSWORD=123456
       - DB_NAME=foodfastdb
->>>>>>> feature/user-service
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
       - db
       - redis
     volumes:
-<<<<<<< HEAD
-      - ./:/usr/src/app
-=======
       # Mount mã nguồn, trừ node_modules
       - ./services/user-service:/usr/src/app
       # Dòng này cách ly node_modules bên trong container
       - /usr/src/app/node_modules
->>>>>>> feature/user-service
     networks:
       - backend
 
@@ -64,15 +37,9 @@ services:
     container_name: foodfast-postgres
     restart: unless-stopped
     environment:
-<<<<<<< HEAD
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: example
-      POSTGRES_DB: foodfast
-=======
       POSTGRES_USER: foodfast
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: foodfastdb
->>>>>>> feature/user-service
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
