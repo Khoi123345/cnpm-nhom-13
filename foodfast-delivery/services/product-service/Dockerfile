@@ -6,8 +6,6 @@ WORKDIR /usr/src/app
 # Copy package.json and package-lock.json first to leverage Docker caching
 COPY package.json package-lock.json ./
 
-RUN npm rebuild bcrypt
-
 # Install dependencies inside the container
 RUN npm install --production
 
@@ -15,7 +13,7 @@ RUN npm install --production
 COPY . .
 
 # Expose the port your app runs on
-EXPOSE 3000
+EXPOSE 3002
 
 # Start the application
 CMD ["node", "src/server.js"]

@@ -1,6 +1,7 @@
 version: "3.8"
 
 services:
+  # --- USER SERVICE (PostgreSQL) - Giữ nguyên ---
   user-service:
     build:
       context: ./services/user-service
@@ -12,9 +13,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345 # Phải giống với product-service
       - JWT_EXPIRES_IN=1d
-      - DB_HOST=db          
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=foodfast
       - DB_PASSWORD=123456
@@ -25,13 +26,42 @@ services:
       - db
       - redis
     volumes:
-      # Mount mã nguồn, trừ node_modules
       - ./services/user-service:/usr/src/app
-      # Dòng này cách ly node_modules bên trong container
       - /usr/src/app/node_modules
     networks:
       - backend
 
+  # --- PRODUCT SERVICE (MongoDB) - THÊM MỚI ---
+  product-service:
+    build:
+      # Giả định code của product-service (chứa Dockerfile, server.js, v.v.)
+      # nằm trong thư mục 'services/product-service'
+      context: ./services/product-service 
+      dockerfile: Dockerfile
+    container_name: foodfast-product-service
+    restart: "no"
+    ports:
+      - "3002:3002" # Cổng 5002 như đã định nghĩa trong server.js
+    env_file:
+      - ./services/product-service/.env
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
+      - MONGODB_URI=mongodb://root-user:root-pass@mongo-db:27017/foodfast_product?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongo-db # Phụ thuộc vào service mongo-db
+      - redis
+    volumes:
+      # Mount code của product-service
+      - ./services/product-service:/usr/src/app 
+      - /usr/src/app/node_modules
+    networks:
+      - backend
+
+  # --- DATABASE (PostgreSQL for User-Service) - Giữ nguyên ---
   db:
     image: postgres:16
     container_name: foodfast-postgres
@@ -45,6 +75,22 @@ services:
     networks:
       - backend
 
+  # --- DATABASE (MongoDB for Product-Service) - THÊM MỚI ---
+  mongo-db:
+    image: mongo:7 # Dùng ảnh MongoDB (ví dụ: version 7)
+    container_name: foodfast-mongo
+    restart: unless-stopped
+    environment:
+      # Tạo user/pass/db cho product-service
+      MONGO_INITDB_ROOT_USERNAME: root-user 
+      MONGO_INITDB_ROOT_PASSWORD: root-pass
+      MONGO_INITDB_DATABASE: productdb
+    volumes:
+      - mongodata:/data/db # Volume để lưu dữ liệu MongoDB
+    networks:
+      - backend
+
+  # --- REDIS (Dùng chung) - Giữ nguyên ---
   redis:
     image: redis:7
     container_name: foodfast-redis
@@ -54,6 +100,7 @@ services:
     networks:
       - backend
 
+  # --- ADMINER (Admin tool cho PostgreSQL) - Giữ nguyên ---
   adminer:
     image: adminer:latest
     container_name: foodfast-adminer
@@ -62,10 +109,10 @@ services:
       - "8080:8080"
     networks:
       - backend
-
 volumes:
   pgdata:
   redisdata:
+  mongodata: # Thêm volume cho MongoDB
 
 networks:
   backend:
