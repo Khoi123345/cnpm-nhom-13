@@ -1,24 +1,46 @@
 package com.programming.orderservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.programming.orderservice.dtos.CartItemDto;
+import com.programming.orderservice.enums.EOrderPaymentStatus;
+import com.programming.orderservice.enums.EOrderStatus;
+import lombok.Builder;
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import jakarta.persistence.*;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.Set;
 
-@Entity
-@Table(name = "orders")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
+@Builder
+@Document(collection = "orders")
 public class Order {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String orderNumber;
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<OrderItems> orderLineItemsList;
+    private String id;
+
+    private String userId;
+
+    private String firstName;
+
+    private String lastName;
+
+    private String addressLine1;
+
+    private String addressLine2;
+
+    private String city;
+
+    private String phoneNo;
+
+    private double orderAmt;
+
+    private LocalDateTime placedOn;
+
+    private EOrderStatus orderStatus;
+
+    private EOrderPaymentStatus paymentStatus;
+
+    private Set<CartItemDto> orderItems;
+
 }
