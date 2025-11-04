@@ -21,14 +21,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;
+    private String userId;
 
-    private String firstName;
-    private String lastName;
-
-    private String addressLine1;
-    private String addressLine2;
-    private String phoneNo;
+    private String addressShip;
 
     private BigDecimal orderAmt;
 
@@ -40,7 +35,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private EOrderPaymentStatus paymentStatus;
 
-    // Liên kết 1-nhiều với OrderItem
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "order_id")
     private Set<OrderItems> orderItems;
