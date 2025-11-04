@@ -5,8 +5,7 @@ import com.programming.orderservice.enums.EOrderPaymentStatus;
 import com.programming.orderservice.enums.EOrderStatus;
 import com.programming.orderservice.exceptions.ResourceNotFoundException;
 import com.programming.orderservice.exceptions.ServiceLogicException;
-import com.programming.orderservice.feigns.CartService;
-import com.programming.orderservice.feigns.NotificationService;
+import com.programming.orderservice.feigns.ProductService;
 import com.programming.orderservice.feigns.UserService;
 import com.programming.orderservice.model.Order;
 import com.programming.orderservice.repositories.OrderRepository;
@@ -31,7 +30,7 @@ public class OrderServiceImpl implements OrderService {
     private NotificationService notificationService;
 
     @Autowired
-    private CartService cartService;
+    private ProductService cartService;
 
     @Autowired
     private UserService userService;
@@ -41,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
 
         try {
 
-            CartDto cart = cartService.getCartById(request.getCartId(), token).getBody().getResponse();
+            ProductDto cart = cartService.getCartById(request.getCartId(), token).getBody().getResponse();
             UserDto user = userService.getUserById(cart.getUserId()).getBody().getResponse();
 
             if (user==null || cart == null || cart.getCartItems().isEmpty()) {
@@ -128,37 +127,12 @@ public class OrderServiceImpl implements OrderService {
         throw new ResourceNotFoundException("Order not found with id " + orderId);
     }
 
-    private boolean clearCart(CartDto cart, String token) {
+    private boolean clearCart(ProductDto cart, String token) {
         return Objects.requireNonNull(cartService.clearCartById(cart.getCartId(), token).getBody()).isSuccess();
     }
 
-    private boolean sendConfirmationEmail(UserDto user, Order order) {
-        StringBuilder contentBuilder = new StringBuilder("Dear " + user.getUsername() + ",<br><br>"
-                + "<h2>Thank you for your order!</h2>"
-                + "<p>Your order #" + order.getId() + " has been successfully placed!</p>"
-                + "<h3>Order summary</h3>");
-        for( CartItemDto item: order.getOrderItems()) {
-            String description = item.getProductName() + ": " + item.getQuantity() + " x " + item.getPrice() + "<br>";
-            contentBuilder.append(description);
-        }
 
-        String content = contentBuilder.toString();
-
-        content += "<h4>Total: " + order.getOrderAmt() + "</h4>"
-                + "<p>Delivery charges be will added to your total at your doorstep!</p>"
-                + "<br>Thank you,<br>"
-                + "Purely.";
-
-        MailRequestDto mail = MailRequestDto.builder()
-                .to(user.getEmail())
-                .subject("Purely - Order confirmation")
-                .body(content)
-                .build();
-
-        return notificationService.sendEmail(mail).getBody().isSuccess();
-    }
-
-    private Order orderRequestDtoToOrder(OrderRequestDto request, CartDto cart) {
+    private Order orderRequestDtoToOrder(OrderRequestDto request, ProductDto cart) {
         return Order.builder()
                 .userId(cart.getUserId())
                 .firstName(request.getFirstName())

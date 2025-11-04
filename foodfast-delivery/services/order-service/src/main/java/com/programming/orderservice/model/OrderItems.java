@@ -1,17 +1,29 @@
 package com.programming.orderservice.model;
 
-import lombok.Builder;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
 
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "order_items")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class OrderItems {
 
-    private String productId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Long productId;
+
     private String productName;
-    private double price;
+
     private int quantity;
-    private double amount;
-    private String imageUrl;
-    private String categoryName;
+
+    private BigDecimal price;
+
+    private BigDecimal subtotal;
 }

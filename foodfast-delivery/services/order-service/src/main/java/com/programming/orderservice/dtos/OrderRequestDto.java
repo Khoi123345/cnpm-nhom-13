@@ -4,22 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderRequestDto {
-    private String firstName;
-
-    private String lastName;
-
-    private String addressLine1;
-
-    private String addressLine2;
-
-    private String city;
-
-    private String phoneNo;
-
-    private String cartId;
-
+    private String userId;
+    private List<OrderItemsDto> items;
 }

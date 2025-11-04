@@ -1,13 +1,8 @@
 package com.programming.orderservice.repositories;
 
-import com.programming.orderservice.modals.Order;
-import org.springframework.data.mongodb.repository.MongoRepository;
-
+import com.programming.orderservice.model.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Set;
 
-public interface OrderRepository extends MongoRepository<Order,String> {
-
-    Set<Order> findByUserIdOrderByIdDesc(String userId);
-
-
+public interface OrderRepository extends JpaRepository<Order, Long> {
 }
