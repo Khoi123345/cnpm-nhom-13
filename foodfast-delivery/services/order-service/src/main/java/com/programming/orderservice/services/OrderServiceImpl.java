@@ -24,7 +24,7 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final UserService userService; // ✅ Sử dụng Feign Client
+    //private final UserService userService; // ✅ Sử dụng Feign Client
 
     // 🟩 Tạo đơn hàng mới - ĐÃ SỬA
     @Override
@@ -32,10 +32,11 @@ public class OrderServiceImpl implements OrderService {
             throws ResourceNotFoundException, ServiceLogicException {
         try {
             // 1. Validate user exists - Gọi User Service
-            Boolean userExists = userService.validateUserExists(userId).hasBody();
-            if (userExists == null || !userExists) {
-                throw new ResourceNotFoundException("User not found: " + userId);
-            }
+            //Boolean userExists = userService.validateUserExists(userId).hasBody();
+            //if (userExists == null || !userExists) {
+            // throw new ResourceNotFoundException("User not found: " + userId);
+           // }
+            log.info("🟢 Creating order for user: {}", userId);
 
             // 2. Create order từ request
             Order order = orderRequestDtoToOrder(request, userId);
@@ -51,8 +52,8 @@ public class OrderServiceImpl implements OrderService {
                             .build()
             );
 
-        } catch (ResourceNotFoundException e) {
-            throw e;
+//        } catch (ResourceNotFoundException e) {
+//            throw e;
         } catch (Exception e) {
             log.error("❌ Error creating order: {}", e.getMessage());
             throw new ServiceLogicException("Cannot create order: " + e.getMessage());
