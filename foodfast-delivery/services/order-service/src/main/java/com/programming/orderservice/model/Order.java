@@ -29,6 +29,8 @@ public class Order {
 
     private LocalDateTime placedOn;
 
+    private String restaurantId;
+
     @Enumerated(EnumType.STRING)
     private EOrderStatus orderStatus;
 

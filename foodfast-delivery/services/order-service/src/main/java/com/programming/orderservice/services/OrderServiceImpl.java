@@ -1,6 +1,7 @@
 package com.programming.orderservice.services;
 
-import com.programming.orderservice.dtos.*;
+import com.programming.orderservice.dtos.ApiResponseDto;
+import com.programming.orderservice.dtos.OrderRequestDto;
 import com.programming.orderservice.enums.EOrderPaymentStatus;
 import com.programming.orderservice.enums.EOrderStatus;
 import com.programming.orderservice.exceptions.ResourceNotFoundException;
@@ -9,8 +10,8 @@ import com.programming.orderservice.feigns.UserService;
 import com.programming.orderservice.model.Order;
 import com.programming.orderservice.model.OrderItems;
 import com.programming.orderservice.repositories.OrderRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -19,65 +20,68 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+    private final UserService userService; // ✅ Sử dụng Feign Client
 
-    @Autowired(required = false)
-    private UserService userService;
-
-    // 🟩 Tạo đơn hàng mới
+    // 🟩 Tạo đơn hàng mới - ĐÃ SỬA
     @Override
-    public ResponseEntity<ApiResponseDto<?>> createOrder(String token, OrderRequestDto request)
+    public ResponseEntity<ApiResponseDto<?>> createOrder(String userId, OrderRequestDto request)
             throws ResourceNotFoundException, ServiceLogicException {
         try {
-            if (request.getOrderItems() == null || request.getOrderItems().isEmpty()) {
-                throw new ResourceNotFoundException("Không có sản phẩm trong đơn hàng!");
+            // 1. Validate user exists - Gọi User Service
+            Boolean userExists = userService.validateUserExists(userId).hasBody();
+            if (userExists == null || !userExists) {
+                throw new ResourceNotFoundException("User not found: " + userId);
             }
 
-            // (Tuỳ chọn) kiểm tra người dùng từ UserService
-            if (userService != null) {
-                UserDto user = userService.getUserById(request.getUserId()).getBody().getResponse();
-                if (user == null) throw new ResourceNotFoundException("Không tìm thấy người dùng!");
-            }
+            // 2. Create order từ request
+            Order order = orderRequestDtoToOrder(request, userId);
 
-            Order order = orderRequestDtoToOrder(request);
-            order = orderRepository.save(order);
+            // 3. Save order
+            Order savedOrder = orderRepository.save(order);
 
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
-                            .message("Đặt hàng thành công!")
-                            .response(order)
+                            .message("Order created successfully")
+                            .response(savedOrder)
                             .build()
             );
 
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            log.error("❌ Lỗi khi tạo đơn hàng: {}", e.getMessage());
-            throw new ServiceLogicException("Không thể tạo đơn hàng!");
+            log.error("❌ Error creating order: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot create order: " + e.getMessage());
         }
     }
 
-    // 🟦 Lấy danh sách đơn hàng của người dùng - ✅ SỬA: List thay vì Set
+    // 🟦 Lấy danh sách đơn hàng của người dùng
     @Override
     public ResponseEntity<ApiResponseDto<?>> getOrdersByUser(String userId)
             throws ResourceNotFoundException, ServiceLogicException {
         try {
-            // ✅ SỬA: Dùng List (khớp với Repository)
-            List<Order> orders = orderRepository.findByUserIdOrderByIdDesc(userId);
+            List<Order> orders = orderRepository.findByUserId(userId);
+
+            if (orders.isEmpty()) {
+                throw new ResourceNotFoundException("No orders found for user: " + userId);
+            }
+
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
-                            .message(orders.size() + " đơn hàng được tìm thấy")
+                            .message(orders.size() + " orders found")
                             .response(orders)
                             .build()
             );
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("❌ Lỗi khi lấy đơn hàng: {}", e.getMessage());
-            throw new ServiceLogicException("Không thể lấy danh sách đơn hàng!");
+            log.error("❌ Error getting user orders: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot get user orders!");
         }
     }
 
@@ -89,23 +93,28 @@ public class OrderServiceImpl implements OrderService {
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
-                            .message(orders.size() + " đơn hàng được tìm thấy")
+                            .message(orders.size() + " orders found")
                             .response(orders)
                             .build()
             );
         } catch (Exception e) {
-            log.error("❌ Lỗi khi lấy tất cả đơn hàng: {}", e.getMessage());
-            throw new ServiceLogicException("Không thể lấy danh sách đơn hàng!");
+            log.error("❌ Error getting all orders: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot get all orders!");
         }
     }
 
-    // 🟥 Hủy đơn hàng
+    // 🟥 Hủy đơn hàng - ĐÃ SỬA (String orderId)
     @Override
     public ResponseEntity<ApiResponseDto<?>> cancelOrder(Long orderId)
             throws ServiceLogicException, ResourceNotFoundException {
         try {
             Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng với id: " + orderId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+            // Chỉ cho phép hủy orders có status PENDING
+            if (order.getOrderStatus() != EOrderStatus.PENDING) {
+                throw new ServiceLogicException("Only pending orders can be cancelled");
+            }
 
             order.setOrderStatus(EOrderStatus.CANCELLED);
             orderRepository.save(order);
@@ -113,27 +122,53 @@ public class OrderServiceImpl implements OrderService {
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
-                            .message("Hủy đơn hàng thành công!")
+                            .message("Order cancelled successfully!")
                             .build()
             );
-        } catch (ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException | ServiceLogicException e) {
             throw e;
         } catch (Exception e) {
-            log.error("❌ Lỗi khi hủy đơn hàng: {}", e.getMessage());
-            throw new ServiceLogicException("Không thể hủy đơn hàng!");
+            log.error("❌ Error cancelling order: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot cancel order!");
         }
     }
 
-    // 🧩 Chuyển DTO → Entity
-    private Order orderRequestDtoToOrder(OrderRequestDto request) {
+    // 🏪 Lấy orders theo restaurant
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> getOrdersByRestaurant(String restaurantId)
+            throws ResourceNotFoundException, ServiceLogicException {
+        try {
+            List<Order> orders = orderRepository.findByRestaurantId(restaurantId);
+
+            if (orders.isEmpty()) {
+                throw new ResourceNotFoundException("No orders found for restaurant: " + restaurantId);
+            }
+
+            return ResponseEntity.ok(
+                    ApiResponseDto.builder()
+                            .isSuccess(true)
+                            .message("Orders retrieved successfully for restaurant: " + restaurantId)
+                            .response(orders)
+                            .build()
+            );
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceLogicException("Error while fetching restaurant orders: " + e.getMessage());
+        }
+    }
+
+    // 🧩 Chuyển DTO → Entity - ĐÃ SỬA
+    private Order orderRequestDtoToOrder(OrderRequestDto request, String userId) {
         return Order.builder()
-                .userId(request.getUserId())
+                .userId(userId) // ✅ Dùng userId từ parameter
                 .addressShip(request.getAddressShip())
+                .orderAmt(request.getOrderAmt())
+                .orderItems(request.getOrderItems())
                 .placedOn(LocalDateTime.now())
                 .orderStatus(EOrderStatus.PENDING)
                 .paymentStatus(EOrderPaymentStatus.UNPAID)
-                .orderAmt(request.getOrderAmt())
-                .orderItems(request.getOrderItems())
                 .build();
     }
 }
