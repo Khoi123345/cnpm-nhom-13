@@ -69,7 +69,7 @@ public class OrderController {
     @PostMapping("/test/user/create")
     public ResponseEntity<ApiResponseDto<?>> createUserOrder(@RequestBody OrderRequestDto request) {
         try {
-            return orderService.createOrder("user-123", request);
+            return orderService.createOrder("user_002", request);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     ApiResponseDto.builder()

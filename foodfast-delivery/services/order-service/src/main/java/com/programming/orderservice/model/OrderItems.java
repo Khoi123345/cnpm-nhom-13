@@ -27,5 +27,5 @@ public class OrderItems {
 
     private BigDecimal subtotal;
 
-
+    private String restaurantId;
 }

@@ -23,7 +23,7 @@ public class MockAuthService {
         } else if (token.contains("restaurant")) {
             userDetails = new UserDetails("restaurant-456", List.of("ROLE_RESTAURANT"));
         } else {
-            userDetails = new UserDetails("user-789", List.of("ROLE_USER"));
+            userDetails = new UserDetails("user_002", List.of("ROLE_USER"));
         }
 
         ApiResponseDto<UserDetails> response = ApiResponseDto.<UserDetails>builder()
