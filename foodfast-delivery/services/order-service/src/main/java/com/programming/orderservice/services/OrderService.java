@@ -9,11 +9,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface OrderService {
-    ResponseEntity<ApiResponseDto<?>> createOrder(String token, OrderRequestDto request) throws ResourceNotFoundException, ServiceLogicException;
+    ResponseEntity<ApiResponseDto<?>> createOrder(String userId, OrderRequestDto request)
+            throws ResourceNotFoundException, ServiceLogicException;
 
-    ResponseEntity<ApiResponseDto<?>> getOrdersByUser(String userId) throws ResourceNotFoundException, ServiceLogicException;
+    ResponseEntity<ApiResponseDto<?>> getOrdersByUser(String userId)
+            throws ResourceNotFoundException, ServiceLogicException;
 
-    ResponseEntity<ApiResponseDto<?>> cancelOrder(String orderId) throws ServiceLogicException, ResourceNotFoundException;
+    ResponseEntity<ApiResponseDto<?>> getOrdersByRestaurant(String restaurantId)
+            throws ResourceNotFoundException, ServiceLogicException;
 
-    ResponseEntity<ApiResponseDto<?>> getAllOrders() throws ServiceLogicException;
+    ResponseEntity<ApiResponseDto<?>> cancelOrder(Long orderId)
+            throws ServiceLogicException, ResourceNotFoundException;
+
+    ResponseEntity<ApiResponseDto<?>> getAllOrders()
+            throws ServiceLogicException;
 }

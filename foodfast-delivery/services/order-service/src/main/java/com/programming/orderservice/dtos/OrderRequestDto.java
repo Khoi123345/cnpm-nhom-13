@@ -1,25 +1,23 @@
 package com.programming.orderservice.dtos;
 
+import com.programming.orderservice.model.OrderItems;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.util.Set;
+
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderRequestDto {
-    private String firstName;
 
-    private String lastName;
+    private String userId;
+    private String addressShip;
+    private BigDecimal orderAmt;
 
-    private String addressLine1;
-
-    private String addressLine2;
-
-    private String city;
-
-    private String phoneNo;
-
-    private String cartId;
-
+    private Set<OrderItems> orderItems;
 }

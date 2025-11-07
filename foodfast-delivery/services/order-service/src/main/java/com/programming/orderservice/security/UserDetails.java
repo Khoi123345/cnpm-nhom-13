@@ -1,15 +1,17 @@
-package com.programming.orderservice.dtos;
-
-
+package com.programming.orderservice.security;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class UserDto {
+public class UserDetails {
+
     private String userId;
-    private String email;
-    private String username;
+
+    private List<String> authorities;
+
 }

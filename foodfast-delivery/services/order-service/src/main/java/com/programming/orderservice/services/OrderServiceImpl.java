@@ -1,94 +1,91 @@
 package com.programming.orderservice.services;
 
-import com.programming.orderservice.dtos.*;
+import com.programming.orderservice.dtos.ApiResponseDto;
+import com.programming.orderservice.dtos.OrderRequestDto;
 import com.programming.orderservice.enums.EOrderPaymentStatus;
 import com.programming.orderservice.enums.EOrderStatus;
 import com.programming.orderservice.exceptions.ResourceNotFoundException;
 import com.programming.orderservice.exceptions.ServiceLogicException;
-import com.programming.orderservice.feigns.CartService;
-import com.programming.orderservice.feigns.NotificationService;
 import com.programming.orderservice.feigns.UserService;
 import com.programming.orderservice.model.Order;
+import com.programming.orderservice.model.OrderItems;
 import com.programming.orderservice.repositories.OrderRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
-@Component
+@Service
 @Slf4j
+@RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+    private final UserService userService; // ✅ Sử dụng Feign Client
 
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private CartService cartService;
-
-    @Autowired
-    private UserService userService;
-
-
-    public ResponseEntity<ApiResponseDto<?>> createOrder(String token, OrderRequestDto request) throws ResourceNotFoundException, ServiceLogicException {
-
+    // 🟩 Tạo đơn hàng mới - ĐÃ SỬA
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> createOrder(String userId, OrderRequestDto request)
+            throws ResourceNotFoundException, ServiceLogicException {
         try {
-
-            CartDto cart = cartService.getCartById(request.getCartId(), token).getBody().getResponse();
-            UserDto user = userService.getUserById(cart.getUserId()).getBody().getResponse();
-
-            if (user==null || cart == null || cart.getCartItems().isEmpty()) {
-                throw new ResourceNotFoundException("No items in the cart!");
+            // 1. Validate user exists - Gọi User Service
+            Boolean userExists = userService.validateUserExists(userId).hasBody();
+            if (userExists == null || !userExists) {
+                throw new ResourceNotFoundException("User not found: " + userId);
             }
 
-            Order order = orderRequestDtoToOrder(request, cart);
-            order = orderRepository.insert(order);
-            try {
-                if (order.getId() != null && clearCart(cart, token) && sendConfirmationEmail(user, order)) {
-                    return ResponseEntity.ok(
-                            ApiResponseDto.builder()
-                                    .isSuccess(true)
-                                    .message("Order has been successfully placed!")
-                                    .build()
-                    );
-                }
-                throw new ServiceLogicException("Unable to proceed order!");
-            }catch (Exception e) {
-                orderRepository.deleteById(order.getId());
-                throw new ServiceLogicException(e.getMessage());
-            }
+            // 2. Create order từ request
+            Order order = orderRequestDtoToOrder(request, userId);
 
-        }catch (ResourceNotFoundException e) {
-            throw new ResourceNotFoundException(e.getMessage());
-        }catch (Exception e) {
-            log.error("Failed to create order: " + e.getMessage());
-            throw new ServiceLogicException("Unable to proceed order!");
-        }
-    }
+            // 3. Save order
+            Order savedOrder = orderRepository.save(order);
 
-    public ResponseEntity<ApiResponseDto<?>> getOrdersByUser(String userId) throws ServiceLogicException {
-        try {
-            Set<Order> orders = orderRepository.findByUserIdOrderByIdDesc(userId);
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
-                            .message(orders.size() + " orders found!")
-                            .response(orders)
+                            .message("Order created successfully")
+                            .response(savedOrder)
                             .build()
             );
-        }catch (Exception e) {
-            log.error("Failed to create order: " + e.getMessage());
-            throw new ServiceLogicException("Unable to find orders!");
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ Error creating order: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot create order: " + e.getMessage());
         }
     }
 
+    // 🟦 Lấy danh sách đơn hàng của người dùng
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> getOrdersByUser(String userId)
+            throws ResourceNotFoundException, ServiceLogicException {
+        try {
+            List<Order> orders = orderRepository.findByUserId(userId);
+
+            if (orders.isEmpty()) {
+                throw new ResourceNotFoundException("No orders found for user: " + userId);
+            }
+
+            return ResponseEntity.ok(
+                    ApiResponseDto.builder()
+                            .isSuccess(true)
+                            .message(orders.size() + " orders found")
+                            .response(orders)
+                            .build()
+            );
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ Error getting user orders: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot get user orders!");
+        }
+    }
+
+    // 🟨 Lấy tất cả đơn hàng (admin)
     @Override
     public ResponseEntity<ApiResponseDto<?>> getAllOrders() throws ServiceLogicException {
         try {
@@ -96,83 +93,82 @@ public class OrderServiceImpl implements OrderService {
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
-                            .message(orders.size() + " orders found!")
+                            .message(orders.size() + " orders found")
                             .response(orders)
                             .build()
             );
-        }catch (Exception e) {
-            log.error("Failed to create order: " + e.getMessage());
-            throw new ServiceLogicException("Unable to find orders!");
+        } catch (Exception e) {
+            log.error("❌ Error getting all orders: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot get all orders!");
         }
     }
 
-
+    // 🟥 Hủy đơn hàng - ĐÃ SỬA (String orderId)
     @Override
-    public ResponseEntity<ApiResponseDto<?>> cancelOrder(String orderId) throws ServiceLogicException, ResourceNotFoundException {
+    public ResponseEntity<ApiResponseDto<?>> cancelOrder(Long orderId)
+            throws ServiceLogicException, ResourceNotFoundException {
         try {
-            if(orderRepository.existsById(orderId)) {
-                Order order = orderRepository.findById(orderId).orElse(null);
-                order.setOrderStatus(EOrderStatus.CANCELLED);
-                orderRepository.save(order);
-                return ResponseEntity.ok(
-                        ApiResponseDto.builder()
-                                .isSuccess(true)
-                                .message("Order successfully cancelled")
-                                .build()
-                );
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+            // Chỉ cho phép hủy orders có status PENDING
+            if (order.getOrderStatus() != EOrderStatus.PENDING) {
+                throw new ServiceLogicException("Only pending orders can be cancelled");
             }
-        }catch (Exception e) {
-            log.error("Failed to create order: " + e.getMessage());
-            throw new ServiceLogicException("Unable to find orders!");
+
+            order.setOrderStatus(EOrderStatus.CANCELLED);
+            orderRepository.save(order);
+
+            return ResponseEntity.ok(
+                    ApiResponseDto.builder()
+                            .isSuccess(true)
+                            .message("Order cancelled successfully!")
+                            .build()
+            );
+        } catch (ResourceNotFoundException | ServiceLogicException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ Error cancelling order: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot cancel order!");
         }
-        throw new ResourceNotFoundException("Order not found with id " + orderId);
     }
 
-    private boolean clearCart(CartDto cart, String token) {
-        return Objects.requireNonNull(cartService.clearCartById(cart.getCartId(), token).getBody()).isSuccess();
-    }
+    // 🏪 Lấy orders theo restaurant
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> getOrdersByRestaurant(String restaurantId)
+            throws ResourceNotFoundException, ServiceLogicException {
+        try {
+            List<Order> orders = orderRepository.findByRestaurantId(restaurantId);
 
-    private boolean sendConfirmationEmail(UserDto user, Order order) {
-        StringBuilder contentBuilder = new StringBuilder("Dear " + user.getUsername() + ",<br><br>"
-                + "<h2>Thank you for your order!</h2>"
-                + "<p>Your order #" + order.getId() + " has been successfully placed!</p>"
-                + "<h3>Order summary</h3>");
-        for( CartItemDto item: order.getOrderItems()) {
-            String description = item.getProductName() + ": " + item.getQuantity() + " x " + item.getPrice() + "<br>";
-            contentBuilder.append(description);
+            if (orders.isEmpty()) {
+                throw new ResourceNotFoundException("No orders found for restaurant: " + restaurantId);
+            }
+
+            return ResponseEntity.ok(
+                    ApiResponseDto.builder()
+                            .isSuccess(true)
+                            .message("Orders retrieved successfully for restaurant: " + restaurantId)
+                            .response(orders)
+                            .build()
+            );
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ServiceLogicException("Error while fetching restaurant orders: " + e.getMessage());
         }
-
-        String content = contentBuilder.toString();
-
-        content += "<h4>Total: " + order.getOrderAmt() + "</h4>"
-                + "<p>Delivery charges be will added to your total at your doorstep!</p>"
-                + "<br>Thank you,<br>"
-                + "Purely.";
-
-        MailRequestDto mail = MailRequestDto.builder()
-                .to(user.getEmail())
-                .subject("Purely - Order confirmation")
-                .body(content)
-                .build();
-
-        return notificationService.sendEmail(mail).getBody().isSuccess();
     }
 
-    private Order orderRequestDtoToOrder(OrderRequestDto request, CartDto cart) {
+    // 🧩 Chuyển DTO → Entity - ĐÃ SỬA
+    private Order orderRequestDtoToOrder(OrderRequestDto request, String userId) {
         return Order.builder()
-                .userId(cart.getUserId())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .addressLine1(request.getAddressLine1())
-                .addressLine2(request.getAddressLine2())
-                .city(request.getCity())
-                .phoneNo(request.getPhoneNo())
+                .userId(userId) // ✅ Dùng userId từ parameter
+                .addressShip(request.getAddressShip())
+                .orderAmt(request.getOrderAmt())
+                .orderItems(request.getOrderItems())
                 .placedOn(LocalDateTime.now())
                 .orderStatus(EOrderStatus.PENDING)
                 .paymentStatus(EOrderPaymentStatus.UNPAID)
-                .orderAmt(cart.getSubtotal())
-                .orderItems(cart.getCartItems())
                 .build();
     }
-
 }
