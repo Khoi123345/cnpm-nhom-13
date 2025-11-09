@@ -48,6 +48,18 @@ router.put('/:id', authenticate, userController.updateUser.bind(userController))
  */
 router.delete('/:id', authenticate, userController.deleteUser.bind(userController));
 
+/**
+ * @route   POST /api/v1/users/:id/ban
+ * @desc    Ban user (set status to BANNED)
+ * @access  Private (Admin only)
+ */
+router.post('/:id/ban', authenticate, authorize('ADMIN'), userController.banUser.bind(userController));
 
+/**
+ * @route   POST /api/v1/users/:id/unban
+ * @desc    Unban user (set status to ACTIVE)
+ * @access  Private (Admin only)
+ */
+router.post('/:id/unban', authenticate, authorize('ADMIN'), userController.unbanUser.bind(userController));
 
 module.exports = router;

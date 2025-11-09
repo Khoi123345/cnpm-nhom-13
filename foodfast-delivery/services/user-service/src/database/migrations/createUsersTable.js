@@ -6,8 +6,8 @@ const createUsersTable = async () => {
   try {
     console.log('🔄 Running migration: Create users table...');
     
-    await client.query(`
-      -- Create users table
+    // Nối chuỗi SQL lại để đảm bảo không có ký tự lỗi
+    const createTableQuery = `
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email VARCHAR(255) UNIQUE NOT NULL,
@@ -15,17 +15,24 @@ const createUsersTable = async () => {
         full_name VARCHAR(255),
         phone VARCHAR(20),
         role VARCHAR(20) CHECK (role IN ('CUSTOMER', 'RESTAURANT', 'ADMIN')) DEFAULT 'CUSTOMER',
+        
+        -- CỘT MỚI ĐÃ THÊM --
+        status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'BANNED')),
+
         is_active BOOLEAN DEFAULT true,
         email_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `;
 
-      -- Create indexes
+    const createIndexesQuery = `
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+      CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+    `;
 
-      -- Create function to auto-update updated_at
+    const createFunctionQuery = `
       CREATE OR REPLACE FUNCTION update_updated_at_column()
       RETURNS TRIGGER AS $$
       BEGIN
@@ -33,16 +40,23 @@ const createUsersTable = async () => {
         RETURN NEW;
       END;
       $$ language 'plpgsql';
-
-      -- Create trigger
+    `;
+    
+    const createTriggerQuery = `
       DROP TRIGGER IF EXISTS update_users_updated_at ON users;
       CREATE TRIGGER update_users_updated_at 
         BEFORE UPDATE ON users
         FOR EACH ROW 
         EXECUTE FUNCTION update_updated_at_column();
-    `);
-    
-    console.log('✅ Migration completed: users table created');
+    `;
+
+    // Thực thi từng câu lệnh một
+    await client.query(createTableQuery);
+    await client.query(createIndexesQuery);
+    await client.query(createFunctionQuery);
+    await client.query(createTriggerQuery);
+
+    console.log('✅ Migration completed: users table created/updated');
   } catch (error) {
     console.error('❌ Migration failed:', error);
     throw error;

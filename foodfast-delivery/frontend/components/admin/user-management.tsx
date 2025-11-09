@@ -1,45 +1,43 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG } from "@/lib/environment"
+import { Button } from "@/components/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
 
-interface User {
+interface AdminUser {
   id: string
-  email: string
   full_name: string
-  phone: string
+  email: string
   role: "CUSTOMER" | "RESTAURANT" | "ADMIN"
-  createdAt: string
+  status: "ACTIVE" | "BANNED"
+  created_at?: string
 }
 
 export function UserManagement() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
-
   const fetchUsers = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      setError(null) // Xóa lỗi cũ
-      
-      // Dùng ApiClient (đã tự động đính kèm 'admin_token')
-      const response = await ApiClient.get<any>( // Dùng 'any' vì response không chuẩn
-        `${API_CONFIG.USER_SERVICE}/api/v1/users?isActive=true`
-      )
-
+      // SỬA ĐỔI: Gọi đến endpoint /api/v1/users
+      const response = await ApiClient.get("/api/v1/users")
       if (response.success) {
-        // user-service trả về { success: true, users: [...] }
-        setUsers(response.users || []) 
+        setUsers(response.data)
       } else {
         setError(response.message)
       }
-      
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -47,50 +45,130 @@ export function UserManagement() {
     }
   }
 
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const handleBan = async (userId: string) => {
+    try {
+      const response = await ApiClient.post(`/api/v1/users/${userId}/ban`, {})
+      if (response.success) {
+        setUsers(currentUsers =>
+          currentUsers.map(user =>
+            user.id === userId ? { ...user, status: "BANNED" } : user,
+          ),
+        )
+        toast.success("User has been banned.")
+      } else {
+        toast.error(response.message || "Failed to ban user")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to ban user")
+    }
+  }
+
+  const handleUnban = async (userId: string) => {
+    try {
+      const response = await ApiClient.post(`/api/v1/users/${userId}/unban`, {})
+      if (response.success) {
+        setUsers(currentUsers =>
+          currentUsers.map(user =>
+            user.id === userId ? { ...user, status: "ACTIVE" } : user,
+          ),
+        )
+        toast.success("User has been unbanned.")
+      } else {
+        toast.error(response.message || "Failed to unban user")
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to unban user")
+    }
+  }
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A"
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return "Invalid Date"
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    } catch {
+      return "Invalid Date"
+    }
+  }
+
   if (loading) return <div>Loading users...</div>
   if (error) return <div className="text-destructive">{error}</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold">Users</h3>
-        <Button onClick={() => fetchUsers()}>Refresh</Button>
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Users</h2>
+        <Button
+          onClick={fetchUsers}
+          variant="default"
+          className="bg-pink-500 hover:bg-pink-600 text-white"
+        >
+          Refresh
+        </Button>
       </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-muted border-b border-border">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Name</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Role</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Joined</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-muted/50">
-                <td className="px-6 py-3 text-sm">{user.email}</td>
-                <td className="px-6 py-3 text-sm">{user.full_name}</td>
-                <td className="px-6 py-3 text-sm">
-                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Email</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Joined</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center text-muted-foreground">
+                No users found
+              </TableCell>
+            </TableRow>
+          ) : (
+            users.map(user => (
+              <TableRow key={user.id}>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.full_name}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="bg-pink-50 text-pink-700 border-pink-200">
                     {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-sm text-foreground/70">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-3 text-sm">
-                  <Button size="sm" variant="outline">
-                    View
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </Badge>
+                </TableCell>
+                <TableCell>{formatDate(user.created_at)}</TableCell>
+                <TableCell>
+                  {user.role === "ADMIN" ? (
+                    <span className="text-sm text-muted-foreground">-</span>
+                  ) : user.status === "ACTIVE" ? (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleBan(user.id)}
+                    >
+                      Ban
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleUnban(user.id)}
+                    >
+                      Unban
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   )
 }

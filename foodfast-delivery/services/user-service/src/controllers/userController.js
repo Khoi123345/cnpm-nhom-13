@@ -88,18 +88,19 @@ class UserController {
   // Lấy danh sách user (ADMIN)
   async getAllUsers(req, res, next) {
     try {
-      const { role, isActive, page = 1, limit = 10 } = req.query;
+      const { role, status, isActive, page = 1, limit = 100 } = req.query;
       const parsedPage = parseInt(page);
       const parsedLimit = parseInt(limit);
       if (isNaN(parsedPage) || parsedPage < 1) {
         return res.status(400).json({ success: false, message: 'Invalid page parameter. Must be a positive integer.' });
       }
-      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
-        return res.status(400).json({ success: false, message: 'Invalid limit parameter. Must be between 1 and 100.' });
+      if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 1000) {
+        return res.status(400).json({ success: false, message: 'Invalid limit parameter. Must be between 1 and 1000.' });
       }
       const filters = {};
       if (role) filters.role = role;
-      if (isActive !== undefined) filters.isActive = isActive;
+      if (status) filters.status = status;
+      else if (isActive !== undefined) filters.isActive = isActive === 'true';
       const result = await userService.getAllUsers(filters, parsedPage, parsedLimit);
       res.status(200).json({ success: true, ...result });
     } catch (error) {
@@ -139,6 +140,53 @@ class UserController {
       await userService.approveRestaurant(id);
       res.json({ success: true, message: 'Restaurant approved successfully' });
     } catch (error) {
+      next(error);
+    }
+  }
+
+  // Ban user (ADMIN only)
+  async banUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ success: false, message: 'Missing user ID' });
+      }
+
+      const bannedUser = await userService.banUser(id);
+      res.json({ 
+        success: true, 
+        message: 'User has been banned successfully',
+        data: bannedUser
+      });
+    } catch (error) {
+      if (error.message === 'User not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
+      if (error.message === 'Cannot ban admin users') {
+        return res.status(403).json({ success: false, message: error.message });
+      }
+      next(error);
+    }
+  }
+
+  // Unban user (ADMIN only)
+  async unbanUser(req, res, next) {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ success: false, message: 'Missing user ID' });
+      }
+
+      const unbannedUser = await userService.unbanUser(id);
+      res.json({ 
+        success: true, 
+        message: 'User has been unbanned successfully',
+        data: unbannedUser
+      });
+    } catch (error) {
+      if (error.message === 'User not found') {
+        return res.status(404).json({ success: false, message: error.message });
+      }
       next(error);
     }
   }

@@ -5,21 +5,32 @@ const messageBroker = require('../utils/messageBroker'); // Import message broke
 const SALT_ROUNDS = 10;
 
 class UserService {
-async getAllUsers(filters = {}, page = 1, limit = 10) {
+  async getAllUsers(filters = {}, page = 1, limit = 100) {
   const offset = (page - 1) * limit;
+
+  // Map filters: if status is provided, use it; otherwise use isActive
+  const repositoryFilters = {};
+  if (filters.role) {
+    repositoryFilters.role = filters.role;
+  }
+  if (filters.status) {
+    repositoryFilters.status = filters.status;
+  } else if (filters.isActive !== undefined) {
+    repositoryFilters.isActive = filters.isActive;
+  }
 
   // Gọi repository (đã có sẵn hàm findAllAndCount)
   const result = await UserRepository.findAllAndCount({
     limit,
     offset,
-    filters
+    filters: repositoryFilters
   });
 
   // Tính tổng số trang
   const totalPages = Math.ceil(result.totalItems / limit);
 
   return {
-    users: result.users,
+    data: result.users, // Return as 'data' to match frontend expectation
     totalItems: result.totalItems,
     currentPage: page,
     totalPages
@@ -163,6 +174,49 @@ async createRestaurantUser(restaurantData) {
     });
 
     return updatedUser;
+  }
+
+  /**
+   * Ban user (Admin only)
+   */
+  async banUser(userId) {
+    // Check if user exists
+    const user = await UserRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Prevent banning admin users
+    if (user.role === 'ADMIN') {
+      throw new Error('Cannot ban admin users');
+    }
+
+    // Ban the user
+    const bannedUser = await UserRepository.banUser(userId);
+    if (!bannedUser) {
+      throw new Error('Failed to ban user');
+    }
+
+    return bannedUser;
+  }
+
+  /**
+   * Unban user (Admin only)
+   */
+  async unbanUser(userId) {
+    // Check if user exists
+    const user = await UserRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Unban the user
+    const unbannedUser = await UserRepository.unbanUser(userId);
+    if (!unbannedUser) {
+      throw new Error('Failed to unban user');
+    }
+
+    return unbannedUser;
   }
 }
 

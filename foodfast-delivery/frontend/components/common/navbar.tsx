@@ -13,7 +13,16 @@ export function Navbar({ userRole, onLogout }: NavbarProps) {
   const router = useRouter()
 
   const handleLogout = () => {
+    // Xóa tất cả các key có thể có để đảm bảo logout sạch
     localStorage.removeItem("token")
+    localStorage.removeItem("user")
+    localStorage.removeItem("customer_token")
+    localStorage.removeItem("customer_user")
+    localStorage.removeItem("restaurant_token")
+    localStorage.removeItem("restaurant_user")
+    localStorage.removeItem("admin_token")
+    localStorage.removeItem("admin_user")
+
     if (onLogout) onLogout()
     router.push("/")
   }
@@ -26,42 +35,57 @@ export function Navbar({ userRole, onLogout }: NavbarProps) {
         </Link>
 
         <nav className="flex items-center gap-6">
-          {userRole === "CUSTOMER" && (
+          {userRole ? (
+            // --- Dành cho người dùng đã đăng nhập ---
             <>
-              <Link href="/customer/dashboard" className="text-foreground/70 hover:text-foreground">
-                Browse
-              </Link>
-              <Link href="/customer/orders" className="text-foreground/70 hover:text-foreground">
-                My Orders
-              </Link>
+              {userRole === "CUSTOMER" && (
+                <>
+                  <Link href="/customer/dashboard" className="text-foreground/70 hover:text-foreground">
+                    Browse
+                  </Link>
+                  <Link href="/customer/orders" className="text-foreground/70 hover:text-foreground">
+                    My Orders
+                  </Link>
+                </>
+              )}
+
+              {userRole === "RESTAURANT" && (
+                <>
+                  <Link href="/restaurant/dashboard" className="text-foreground/70 hover:text-foreground">
+                    Menu
+                  </Link>
+                  <Link href="/restaurant/settings" className="text-foreground/70 hover:text-foreground">
+                    Settings
+                  </Link>
+                </>
+              )}
+
+              {userRole === "ADMIN" && (
+                <>
+                  <Link href="/admin/dashboard" className="text-foreground/70 hover:text-foreground">
+                    Dashboard
+                  </Link>
+                  <Link href="/admin/settings" className="text-foreground/70 hover:text-foreground">
+                    Settings
+                  </Link>
+                </>
+              )}
+
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            // --- Dành cho khách (chưa đăng nhập) ---
+            <>
+              <Button variant="outline" asChild>
+                <Link href="/login">Sign In</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/register">Get Started</Link>
+              </Button>
             </>
           )}
-
-          {userRole === "RESTAURANT" && (
-            <>
-              <Link href="/restaurant/dashboard" className="text-foreground/70 hover:text-foreground">
-                Menu
-              </Link>
-              <Link href="/restaurant/settings" className="text-foreground/70 hover:text-foreground">
-                Settings
-              </Link>
-            </>
-          )}
-
-          {userRole === "ADMIN" && (
-            <>
-              <Link href="/admin/dashboard" className="text-foreground/70 hover:text-foreground">
-                Dashboard
-              </Link>
-              <Link href="/admin/settings" className="text-foreground/70 hover:text-foreground">
-                Settings
-              </Link>
-            </>
-          )}
-
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
         </nav>
       </div>
     </header>

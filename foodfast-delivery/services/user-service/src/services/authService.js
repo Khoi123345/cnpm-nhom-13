@@ -80,7 +80,15 @@ class AuthService {
       throw new Error('Sai mật khẩu');
     }
     
-    if (!user.is_active) {
+    // Check status: if status field exists, use it; otherwise use is_active
+    const userStatus = user.status || (user.is_active ? 'ACTIVE' : 'BANNED');
+    
+    if (userStatus === 'BANNED') {
+      throw new Error('Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
+    }
+    
+    // For restaurant users, check if they are approved (is_active)
+    if (user.role === 'RESTAURANT' && !user.is_active) {
       throw new Error('Tài khoản của bạn đang chờ phê duyệt.');
     }
     if (user.role === 'RESTAURANT') {

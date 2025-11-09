@@ -48,7 +48,17 @@ class UserRepository {
    */
   async findById(userId) {
     const query = `
-      SELECT id, email, full_name, phone, role, is_active, email_verified, created_at, updated_at
+      SELECT 
+        id, 
+        email, 
+        full_name, 
+        phone, 
+        role, 
+        COALESCE(status, CASE WHEN is_active THEN 'ACTIVE' ELSE 'BANNED' END) as status,
+        is_active,
+        email_verified, 
+        created_at, 
+        updated_at
       FROM users WHERE id = $1
     `;
     const result = await pool.query(query, [userId]);
@@ -97,7 +107,11 @@ class UserRepository {
       baseQuery += ` AND role = $${paramIndex++}`;
       queryParams.push(filters.role);
     }
-    if (filters.isActive !== undefined) {
+    if (filters.status) {
+      // Filter by status if exists, otherwise filter by is_active
+      baseQuery += ` AND COALESCE(status, CASE WHEN is_active THEN 'ACTIVE' ELSE 'BANNED' END) = $${paramIndex++}`;
+      queryParams.push(filters.status);
+    } else if (filters.isActive !== undefined) {
       baseQuery += ` AND is_active = $${paramIndex++}`;
       queryParams.push(filters.isActive);
     }
@@ -108,9 +122,16 @@ class UserRepository {
     const totalItems = parseInt(countResult.rows[0].count, 10);
 
     const dataQuery = `
-      SELECT id, email, full_name, phone, role, is_active
+      SELECT 
+        id, 
+        email, 
+        full_name, 
+        phone, 
+        role, 
+        COALESCE(status, CASE WHEN is_active THEN 'ACTIVE' ELSE 'BANNED' END) as status,
+        created_at
       ${baseQuery} 
-      ORDER BY id ASC
+      ORDER BY created_at DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
     
@@ -122,8 +143,66 @@ class UserRepository {
     };
   }
   async setUserActive(userId) {
-    const query = 'UPDATE users SET is_active = true, updated_at = NOW() WHERE id = $1 RETURNING id, is_active';
+    const query = 'UPDATE users SET is_active = true, status = COALESCE(status, \'ACTIVE\'), updated_at = NOW() WHERE id = $1 RETURNING id, is_active';
     const result = await pool.query(query, [userId]);
+    return result.rows[0];
+  }
+
+  /**
+   * Ban user (set status to BANNED)
+   */
+  async banUser(userId) {
+    // Update status to BANNED and is_active to false
+    // Use COALESCE to handle case where status column might not exist
+    const query = `
+      UPDATE users 
+      SET 
+        status = 'BANNED',
+        is_active = false, 
+        updated_at = NOW() 
+      WHERE id = $1 
+      RETURNING 
+        id, 
+        email, 
+        full_name, 
+        phone, 
+        role, 
+        COALESCE(status, CASE WHEN is_active THEN 'ACTIVE' ELSE 'BANNED' END) as status,
+        created_at, 
+        updated_at
+    `;
+    const result = await pool.query(query, [userId]);
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return result.rows[0];
+  }
+
+  /**
+   * Unban user (set status to ACTIVE)
+   */
+  async unbanUser(userId) {
+    const query = `
+      UPDATE users 
+      SET 
+        status = 'ACTIVE',
+        is_active = true, 
+        updated_at = NOW() 
+      WHERE id = $1 
+      RETURNING 
+        id, 
+        email, 
+        full_name, 
+        phone, 
+        role, 
+        COALESCE(status, CASE WHEN is_active THEN 'ACTIVE' ELSE 'BANNED' END) as status,
+        created_at, 
+        updated_at
+    `;
+    const result = await pool.query(query, [userId]);
+    if (result.rows.length === 0) {
+      return null;
+    }
     return result.rows[0];
   }
 }
