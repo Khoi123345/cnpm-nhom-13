@@ -13,5 +13,30 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  redis:
+    host: localhost
+    port: 6379
+
   server:
-    port: 8081
+    port: 8082
+
+# URL mặc định cho Feign Client khi chạy local
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://db-order:5432/Order-service
+
+  redis:
+    host: redis
+    port: 6379
+
+  cloud:
+    loadbalancer:
+      static: # <-- ⭐️ SỬA: Thêm "static" ở đây
+        clients:
+          PRODUCT-SERVICE: http://product-service:3002 # ⭐️ SỬA: Đổi định dạng
+          USER-SERVICE: http://user-service:3000
