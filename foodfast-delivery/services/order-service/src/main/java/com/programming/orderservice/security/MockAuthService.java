@@ -29,7 +29,7 @@ public class MockAuthService {
         ApiResponseDto<UserDetails> response = ApiResponseDto.<UserDetails>builder()
                 .isSuccess(true)
                 .message("Token is valid")
-                .response(userDetails)
+                .data(userDetails)
                 .build();
 
         return ResponseEntity.ok(response);

@@ -7,7 +7,8 @@ public enum EOrderStatus {
     PROCESSING,  // Đang xử lý
     SHIPPED,     // Đã giao hàng
     DELIVERED,   // Đã nhận hàng
+    CANCELLATION_REQUESTED, // ⭐️ THÊM: Nhà hàng yêu cầu hủy
     CANCELLED,   // Đã hủy
-    REFUNDED,    // ✅ Đã hoàn tiền
+    REFUNDED,
     COMPLETED    // Hoàn thành
 }

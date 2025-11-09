@@ -4,6 +4,7 @@ const router = express.Router();
 const productController = require('../controller/productController');
 const { authenticate, authorize } = require('../middleware/authMiddleware');
 
+router.post('/check-stock', productController.checkStock);
 // === CÁC ROUTE CÔNG KHAI ===
 /**
  * @route   GET /api/products
@@ -11,6 +12,18 @@ const { authenticate, authorize } = require('../middleware/authMiddleware');
  * @access  Public
  */
 router.get('/', productController.getAllProducts);
+
+/**
+ * @route   GET /api/products/my-products
+ * @desc    Lấy danh sách sản phẩm của nhà hàng đang đăng nhập
+ * @access  Private (RESTAURANT)
+ */
+router.get(
+    '/my-products',
+    authenticate,
+    authorize('RESTAURANT'),
+    productController.getMyProducts
+);
 
 /**
  * @route   GET /api/products/:id
@@ -57,5 +70,6 @@ router.delete(
     authorize('RESTAURANT'),
     productController.deleteProduct
 );
+
 
 module.exports = router;

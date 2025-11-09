@@ -1,20 +1,22 @@
 # syntax=docker/dockerfile:1
 FROM node:18.20.8-alpine
 
+# Cài build tools để node-gyp build libpq (Postgres client)
+RUN apk add --no-cache python3 make g++ bash
+
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json first to leverage Docker caching
-COPY package.json package-lock.json ./
+# Copy package.json & package-lock.json (nếu có)
+COPY package.json package-lock.json* ./
 
-# Install dependencies inside the container
-RUN npm install --production
+# Cài dependencies (bỏ qua peer deps)
+RUN npm install --legacy-peer-deps
 
-# Copy the rest of the application code
+# Copy toàn bộ source code
 COPY . .
 
-# Expose the port your app runs on
+# Expose cổng
 EXPOSE 3000
 
-# Start the application
+# Chạy server
 CMD ["node", "src/server.js"]
-

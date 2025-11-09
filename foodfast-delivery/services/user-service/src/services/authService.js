@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const { generateToken } = require('../utils/jwt');
 const userRepository = require('../repositories/userRepository');
+const messageBroker = require('../utils/messageBroker');
 
 const SALT_ROUNDS = 10;
 
@@ -78,6 +79,20 @@ class AuthService {
     if (!isMatch) {
       throw new Error('Sai mật khẩu');
     }
+    
+    if (!user.is_active) {
+      throw new Error('Tài khoản của bạn đang chờ phê duyệt.');
+    }
+    if (user.role === 'RESTAURANT') {
+      try {
+        await messageBroker.publish('restaurant.user.loggedin', {
+          eventType: 'RestaurantUserLoggedIn',
+          payload: { userId: user.id }
+        });
+      } catch (err) {
+        console.warn(`⚠️  Failed to publish login event for user ${user.id}`, err.message);
+      }
+    }
     // Tạo JWT token
     const token = generateToken({
       id: user.id,
@@ -95,6 +110,20 @@ class AuthService {
       },
       token,
     };
+  }
+  async logout(userId, role) {
+    if (role === 'RESTAURANT') {
+      try {
+        await messageBroker.publish('restaurant.user.loggedout', {
+          eventType: 'RestaurantUserLoggedOut',
+          payload: { userId: userId }
+        });
+      } catch (err) {
+        console.warn(`⚠️  Failed to publish logout event for user ${userId}`, err.message);
+      }
+    }
+    // Không cần làm gì thêm, việc xoá token do frontend xử lý
+    return { success: true, message: 'Logout event published' };
   }
 }
 

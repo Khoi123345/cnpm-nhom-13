@@ -32,7 +32,7 @@ async createRestaurantUser(restaurantData) {
   const { email, password, phone, restaurant_name, restaurant_address } = restaurantData;
 
   // Check if email already exists
-  const existingUser = await userRepository.existsByEmail(email);
+  const existingUser = await UserRepository.findByEmail(email);
   if (existingUser) {
     throw new Error('Email already exists');
   }
@@ -41,7 +41,7 @@ async createRestaurantUser(restaurantData) {
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
   // Create user with RESTAURANT role and is_active = false
-  const newUser = await userRepository.create({
+  const newUser = await UserRepository.create({
     email,
     password_hash,
     full_name: restaurant_name,
@@ -149,6 +149,20 @@ async createRestaurantUser(restaurantData) {
     if (rowCount === 0) {
       throw new Error('User not found');
     }
+  }
+  async approveRestaurant(userId) {
+    const updatedUser = await UserRepository.setUserActive(userId);
+    if (!updatedUser) {
+      throw new Error('User not found');
+    }
+
+    // Gửi sự kiện để service khác (product-service) cập nhật
+    await messageBroker.publish('restaurant.user.approved', {
+      eventType: 'RestaurantUserApproved',
+      payload: { userId: userId }
+    });
+
+    return updatedUser;
   }
 }
 

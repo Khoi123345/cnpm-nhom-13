@@ -1,81 +1,131 @@
 package com.programming.orderservice.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.programming.orderservice.dtos.ApiResponseDto;
 import com.programming.orderservice.dtos.OrderRequestDto;
+// ⭐️ THÊM IMPORT
+import com.programming.orderservice.dtos.StockCheckRequestDto;
+import com.programming.orderservice.dtos.StockCheckResponseDto;
+import com.programming.orderservice.dtos.StockCheckItemDto;
 import com.programming.orderservice.enums.EOrderPaymentStatus;
 import com.programming.orderservice.enums.EOrderStatus;
 import com.programming.orderservice.exceptions.ResourceNotFoundException;
 import com.programming.orderservice.exceptions.ServiceLogicException;
-import com.programming.orderservice.feigns.UserService;
+// ⭐️ THÊM IMPORT
+import com.programming.orderservice.feigns.ProductService;
+import com.programming.orderservice.feigns.UserService; // (Giữ comment)
 import com.programming.orderservice.model.Order;
 import com.programming.orderservice.model.OrderItems;
 import com.programming.orderservice.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
-
+    
     private final OrderRepository orderRepository;
-    //private final UserService userService; // ✅ Sử dụng Feign Client
+    private final ProductService productService;
+    // ⭐️ BẮT ĐẦU SỬA ĐỔI: Thêm 3 dòng
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper;
+    public static final String ORDER_CONFIRMED_CHANNEL = "order.confirmed";
+    // ⭐️ KẾT THÚC SỬA ĐỔI
 
-    // 🟩 Tạo đơn hàng mới - ĐÃ SỬA
+    // 🟩 Tạo đơn hàng mới - ⭐️ ĐÃ SỬA
     @Override
-    public ResponseEntity<ApiResponseDto<?>> createOrder(String userId, OrderRequestDto request)
+    public ResponseEntity<ApiResponseDto<?>> createOrder(OrderRequestDto request)
             throws ResourceNotFoundException, ServiceLogicException {
         try {
-            // 1. Validate user exists - Gọi User Service
-            //Boolean userExists = userService.validateUserExists(userId).hasBody();
-            //if (userExists == null || !userExists) {
-            // throw new ResourceNotFoundException("User not found: " + userId);
-           // }
-            log.info("🟢 Creating order for user: {}", userId);
+            // ⭐️ BƯỚC 1: KIỂM TRA TỒN KHO (KHÔNG TRỪ STOCK)
+            // Chỉ kiểm tra xem có đủ hàng không, nhưng KHÔNG trừ stock ở đây
+            // Stock sẽ chỉ bị trừ khi order status chuyển sang COMPLETED
+            log.info("Checking stock availability for order (stock will not be deducted yet)...");
+            
+            // 1. Convert OrderItems sang StockCheckItemDto (chỉ cần productId và quantity)
+            List<StockCheckItemDto> stockCheckItems = request.getOrderItems().stream()
+                    .map(item -> StockCheckItemDto.builder()
+                            .productId(item.getProductId())
+                            .quantity(item.getQuantity())
+                            .build())
+                    .collect(Collectors.toList());
+            
+            // 2. Tạo request cho /check-stock
+            StockCheckRequestDto stockRequest = StockCheckRequestDto.builder()
+                    .items(stockCheckItems)
+                    .build();
 
-            // 2. Create order từ request
-            Order order = orderRequestDtoToOrder(request, userId);
+            // 3. Gọi Feign Client để kiểm tra stock
+            ResponseEntity<ApiResponseDto<StockCheckResponseDto>> response = productService.checkStock(stockRequest);
 
-            // 3. Save order
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null || !response.getBody().isSuccess()) {
+                throw new ServiceLogicException("Failed to check stock: Service unavailable or returned an error.");
+            }
+
+            StockCheckResponseDto stockResponse = response.getBody().getData();
+
+            // 4. Xử lý kết quả kiểm tra
+            if (!stockResponse.isSufficient()) {
+                // Lọc ra các sản phẩm không đủ hàng
+                String unavailableItems = stockResponse.getDetails().stream()
+                        .filter(detail -> !"OK".equals(detail.getStatus()))
+                        .map(detail -> String.format("Product ID %s (Status: %s)", detail.getProductId(), detail.getStatus()))
+                        .collect(Collectors.joining(", "));
+                
+                log.warn("Stock insufficient for order. Details: {}", unavailableItems);
+                throw new ServiceLogicException("Stock insufficient for items: " + unavailableItems);
+            }
+            // ⭐️ KẾT THÚC: Logic kiểm tra tồn kho (chỉ check, không trừ)
+            
+
+            // ⭐️ BƯỚC 2: TẠO ĐƠN HÀNG
+            // Nếu tồn kho đủ, tạo order với status PENDING
+            // Stock sẽ chỉ bị trừ khi order status chuyển sang COMPLETED (xem updateOrderStatus method)
+            log.info("Stock is sufficient. Creating order for user: {} (stock will be deducted when order is completed)", request.getUserId());
+            Order order = orderRequestDtoToOrder(request);
             Order savedOrder = orderRepository.save(order);
 
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
                             .message("Order created successfully")
-                            .response(savedOrder)
+                            .data(savedOrder)
                             .build()
             );
-
-//        } catch (ResourceNotFoundException e) {
-//            throw e;
+        } catch (ServiceLogicException e) {
+            // Ném lại lỗi logic (ví dụ: hết hàng) để controller xử lý
+            throw e; 
         } catch (Exception e) {
             log.error("❌ Error creating order: {}", e.getMessage());
+            // Lỗi chung (ví dụ: không gọi được product-service)
             throw new ServiceLogicException("Cannot create order: " + e.getMessage());
         }
     }
 
-    // 🟦 Lấy danh sách đơn hàng của người dùng
+    // 🟦 Lấy danh sách đơn hàng của người dùng - (Giữ nguyên)
     @Override
     public ResponseEntity<ApiResponseDto<?>> getOrdersByUser(String userId)
             throws ResourceNotFoundException, ServiceLogicException {
         try {
             List<Order> orders = orderRepository.findByUserId(userId);
-
             if (orders.isEmpty()) {
                 throw new ResourceNotFoundException("No orders found for user: " + userId);
             }
-
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
                             .message(orders.size() + " orders found")
-                            .response(orders)
+                            .data(orders)
                             .build()
             );
         } catch (ResourceNotFoundException e) {
@@ -86,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // 🟨 Lấy tất cả đơn hàng (admin)
+    // 🟨 Lấy tất cả đơn hàng (admin) - (Giữ nguyên)
     @Override
     public ResponseEntity<ApiResponseDto<?>> getAllOrders() throws ServiceLogicException {
         try {
@@ -95,7 +145,7 @@ public class OrderServiceImpl implements OrderService {
                     ApiResponseDto.builder()
                             .isSuccess(true)
                             .message(orders.size() + " orders found")
-                            .response(orders)
+                            .data(orders)
                             .build()
             );
         } catch (Exception e) {
@@ -104,22 +154,18 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // 🟥 Hủy đơn hàng - ĐÃ SỬA (String orderId)
+    // 🟥 Hủy đơn hàng - (Giữ nguyên)
     @Override
     public ResponseEntity<ApiResponseDto<?>> cancelOrder(Long orderId)
             throws ServiceLogicException, ResourceNotFoundException {
         try {
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
-
-            // Chỉ cho phép hủy orders có status PENDING
             if (order.getOrderStatus() != EOrderStatus.PENDING) {
                 throw new ServiceLogicException("Only pending orders can be cancelled");
             }
-
             order.setOrderStatus(EOrderStatus.CANCELLED);
             orderRepository.save(order);
-
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
@@ -134,25 +180,22 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // 🏪 Lấy orders theo restaurant
+    // 🏪 Lấy orders theo restaurant - (Giữ nguyên)
     @Override
     public ResponseEntity<ApiResponseDto<?>> getOrdersByRestaurant(String restaurantId)
             throws ResourceNotFoundException, ServiceLogicException {
         try {
             List<Order> orders = orderRepository.findByRestaurantId(restaurantId);
-
             if (orders.isEmpty()) {
                 throw new ResourceNotFoundException("No orders found for restaurant: " + restaurantId);
             }
-
             return ResponseEntity.ok(
                     ApiResponseDto.builder()
                             .isSuccess(true)
                             .message("Orders retrieved successfully for restaurant: " + restaurantId)
-                            .response(orders)
+                            .data(orders)
                             .build()
             );
-
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -160,16 +203,168 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    // 🧩 Chuyển DTO → Entity - ĐÃ SỬA
-    private Order orderRequestDtoToOrder(OrderRequestDto request, String userId) {
+    // 🟪 Cập nhật trạng thái đơn hàng - ⭐️ ĐÃ SỬA
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> updateOrderStatus(Long orderId, EOrderStatus newStatus, String userId, String userRole)
+            throws ServiceLogicException, ResourceNotFoundException {
+        try {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+            EOrderStatus oldStatus = order.getOrderStatus();
+            log.info("Attempting to update order {}: from {} to {} by user {} (Role: {})",
+                    orderId, oldStatus, newStatus, userId, userRole);
+
+            // (Phần checkPermission giữ nguyên, bạn có thể bỏ comment nếu muốn)
+            // checkPermission(order, oldStatus, newStatus, userId, userRole);
+
+            // Cập nhật trạng thái
+            order.setOrderStatus(newStatus);
+            Order savedOrder = orderRepository.save(order);
+            
+            // ⭐️ TRỪ STOCK KHI ORDER HOÀN THÀNH (COMPLETED)
+            // Stock chỉ bị trừ khi order status chuyển sang COMPLETED
+            // Điều này đảm bảo stock chỉ bị trừ khi đơn hàng thực sự hoàn thành,
+            // không bị trừ khi order còn có thể bị hủy (PENDING, CONFIRMED, PROCESSING, SHIPPED)
+            if (newStatus == EOrderStatus.COMPLETED && oldStatus != EOrderStatus.COMPLETED) {
+                try {
+                    log.info("🟢 Order {} is COMPLETED. Publishing stock update event to decrement stock...", orderId);
+
+                    // 1. Tạo danh sách items (productId và quantity)
+                    // ProductService chỉ cần 2 thông tin này
+                    List<Map<String, Object>> orderItems = savedOrder.getOrderItems().stream()
+                            .map(item -> Map.of(
+                                    "productId", (Object) item.getProductId(),
+                                    "quantity", (Object) item.getQuantity()
+                            ))
+                            .collect(Collectors.toList());
+
+                    // 2. Tạo payload chính
+                    Map<String, Object> payload = Map.of(
+                            "orderId", (Object) savedOrder.getId(),
+                            "items", (Object) orderItems
+                    );
+                    
+                    // 3. Tạo event (để khớp với subscriber bên product-service)
+                    Map<String, Object> event = Map.of(
+                        "eventType", "OrderConfirmed", // Giữ nguyên tên eventType này vì ProductService đang lắng nghe nó
+                        "payload", payload
+                    );
+
+                    // 4. Chuyển sang JSON và gửi
+                    String jsonEvent = objectMapper.writeValueAsString(event);
+                    // Gửi đến kênh để product-service trừ stock
+                    redisTemplate.convertAndSend(ORDER_CONFIRMED_CHANNEL, jsonEvent);
+                    
+                    log.info("✅ Successfully published stock update event for order ID: {}", orderId);
+
+                } catch (Exception e) {
+                    // Rất quan trọng: Không được để lỗi Redis làm hỏng giao dịch chính
+                    log.error("❌ FAILED TO PUBLISH 'order.confirmed' event for order ID: {}. Error: {}",
+                            orderId, e.getMessage());
+                    log.error("❌ Error details: {}", e.getClass().getName());
+                    if (e.getCause() != null) {
+                        log.error("❌ Root cause: {}", e.getCause().getMessage());
+                    }
+                    log.error("❌ Stack trace: ", e);
+                    // Không ném lại lỗi (throw e) - order status đã được cập nhật thành công
+                }
+            }
+            // ⭐️ KẾT THÚC SỬA ĐỔI
+
+            return ResponseEntity.ok(
+                    ApiResponseDto.builder()
+                            .isSuccess(true)
+                            .message("Order status updated to " + newStatus)
+                            .data(savedOrder)
+                            .build()
+            );
+        } catch (ResourceNotFoundException e) {
+            log.warn("Failed to update order status: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ Error updating order status: {}", e.getMessage());
+            throw new ServiceLogicException("Cannot update order status!");
+        }
+    }
+
+    // ⭐️ HÀM MỚI: Logic kiểm tra quyền - (Giữ nguyên)
+    private void checkPermission(Order order, EOrderStatus oldStatus, EOrderStatus newStatus, String userId, String userRole)
+            throws ServiceLogicException {
+
+        if (Objects.equals(userRole, "ROLE_ADMIN")) {
+            if (oldStatus == EOrderStatus.CANCELLATION_REQUESTED) {
+                if (newStatus == EOrderStatus.CANCELLED || newStatus == EOrderStatus.CONFIRMED) {
+                    return; 
+                }
+            }
+            if (newStatus == EOrderStatus.CANCELLED && oldStatus != EOrderStatus.COMPLETED) {
+                return;
+            }
+            if (newStatus == EOrderStatus.SHIPPED || newStatus == EOrderStatus.DELIVERED) {
+                return;
+            }
+        }
+
+        if (Objects.equals(userRole, "ROLE_RESTAURANT")) {
+            if (!Objects.equals(order.getRestaurantId(), userId)) {
+                throw new ServiceLogicException("Access Denied: You do not own this order.");
+            }
+            switch (newStatus) {
+                case CONFIRMED:
+                    if (oldStatus == EOrderStatus.PENDING) return;
+                    break;
+                case CANCELLED:
+                    if (oldStatus == EOrderStatus.PENDING) return;
+                    break;
+                case PROCESSING:
+                    if (oldStatus == EOrderStatus.CONFIRMED) return;
+                    break;
+                case SHIPPED:
+                    if (oldStatus == EOrderStatus.PROCESSING) return;
+                    break;
+                case CANCELLATION_REQUESTED:
+                    if (oldStatus == EOrderStatus.CONFIRMED || oldStatus == EOrderStatus.PROCESSING) return;
+                    break;
+            }
+        }
+
+        if (Objects.equals(userRole, "ROLE_USER")) {
+            if (!Objects.equals(order.getUserId(), userId)) {
+                throw new ServiceLogicException("Access Denied: This is not your order.");
+            }
+            switch (newStatus) {
+                case CANCELLED:
+                    if (oldStatus == EOrderStatus.PENDING) return;
+                    break;
+                case COMPLETED:
+                    if (oldStatus == EOrderStatus.SHIPPED || oldStatus == EOrderStatus.DELIVERED) return;
+                    break;
+            }
+        }
+
+        throw new ServiceLogicException(String.format("Invalid status transition: Role %s cannot change order from %s to %s.",
+                userRole, oldStatus, newStatus));
+    }
+
+    // 🧩 Chuyển DTO → Entity - (Giữ nguyên)
+    private Order orderRequestDtoToOrder(OrderRequestDto request) {
+        
+        String restaurantId = null;
+        if (request.getOrderItems() != null && !request.getOrderItems().isEmpty()) {
+            OrderItems firstItem = request.getOrderItems().iterator().next();
+            restaurantId = firstItem.getRestaurantId();
+        }
+
         return Order.builder()
-                .userId(userId) // ✅ Dùng userId từ parameter
+                .userId(request.getUserId())
                 .addressShip(request.getAddressShip())
                 .orderAmt(request.getOrderAmt())
                 .orderItems(request.getOrderItems())
                 .placedOn(LocalDateTime.now())
                 .orderStatus(EOrderStatus.PENDING)
                 .paymentStatus(EOrderPaymentStatus.UNPAID)
+                .restaurantId(restaurantId)
                 .build();
     }
 }

@@ -17,6 +17,12 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    quantity: {
+        type: Number,
+        required: true,
+        default: 0, // Mặc định là 0, chủ nhà hàng phải cập nhật
+        min: 0      // Đảm bảo số lượng không bao giờ âm
+    },
     restaurant: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Restaurant',

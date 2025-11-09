@@ -121,6 +121,11 @@ class UserRepository {
       totalItems,
     };
   }
+  async setUserActive(userId) {
+    const query = 'UPDATE users SET is_active = true, updated_at = NOW() WHERE id = $1 RETURNING id, is_active';
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+  }
 }
 
 module.exports = new UserRepository();

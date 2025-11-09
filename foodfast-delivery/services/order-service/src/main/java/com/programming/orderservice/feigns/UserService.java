@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient("USER-SERVICE")
+@FeignClient(name = "USER-SERVICE", url = "${feign.client.user-service-url}")
 public interface UserService {
 
     @GetMapping("/user/get/byId")

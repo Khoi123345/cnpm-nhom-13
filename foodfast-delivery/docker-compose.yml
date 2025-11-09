@@ -1,0 +1,192 @@
+version: "3.8"
+
+services:
+  # --- FRONTEND (Next.js) ---
+  web:
+    build:
+      context: ./frontend # ⭐️ SỬA: Trỏ đến thư mục frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      # ⭐️ SỬA: Thêm 'frontend/' vào trước tất cả các đường dẫn
+      - ./frontend/app:/app/app
+      - ./frontend/components:/app/components
+      - ./frontend/hooks:/app/hooks
+      - ./frontend/lib:/app/lib
+      - ./frontend/public:/app/public
+      - ./frontend/styles:/app/styles
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
+      - ./frontend/next.config.mjs:/app/next.config.mjs
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
+      - ./frontend/components.json:/app/components.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_USER_API_URL=http://localhost:3001
+      - NEXT_PUBLIC_PRODUCT_API_URL=http://localhost:3002
+      - NEXT_PUBLIC_ORDER_SERVICE_URL=http://localhost:8082
+    command: npm run dev
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - backend
+
+  # --- USER SERVICE (PostgreSQL) ---
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: foodfast-user-service
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
+      - JWT_EXPIRES_IN=1d
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=foodfast
+      - DB_PASSWORD=123456
+      - DB_NAME=foodfastdb
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./services/user-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - backend
+
+  # --- PRODUCT SERVICE (MongoDB) ---
+  product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile
+    container_name: foodfast-product-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
+      - MONGODB_URI=mongodb://root-user:root-pass@mongo-db:27017/foodfast_product?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongo-db
+      - redis
+    volumes:
+      - ./services/product-service:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev
+    networks:
+      - backend
+      
+  # --- ORDER SERVICE (Spring Boot) ---
+  order-service:
+    build:
+      context: ./services/order-service # Trỏ đến thư mục order-service
+      dockerfile: Dockerfile
+    container_name: foodfast-order-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082" # Expose cổng 8082
+    environment:
+      - SERVER_PORT=8082
+      - SPRING_PROFILES_ACTIVE=docker
+      # ⭐️ SỬA 1: Trỏ đến server "db-order"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-order:5432/Order-service
+      - SPRING_DATASOURCE_USERNAME=postgres # Dùng user 'postgres'
+      - SPRING_DATASOURCE_PASSWORD=123456 # Dùng pass từ service 'db-order'
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_CLOUD_DISCOVERY_ENABLED=false
+      
+    depends_on:
+      - db-order # Phụ thuộc vào service 'db-order'
+      - redis
+    networks:
+      - backend
+  # --- POSTGRES (User Service DB) ---
+  db:
+    image: postgres:16
+    container_name: foodfast-postgres-user
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: foodfast
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: foodfastdb
+    volumes:
+      # ⭐️ SỬA 2: Volume riêng cho user-service
+      - pgdata-user:/var/lib/postgresql/data
+    networks:
+      - backend
+  
+  # --- POSTGRES (Order Service DB) ---
+  db-order:
+    image: postgres:16
+    container_name: foodfast-postgres-order
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: Order-service
+    volumes:
+      # ⭐️ SỬA 3: Volume riêng cho order-service
+      - pgdata-order:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  # --- MONGO (Product Service DB) ---
+  mongo-db:
+    image: mongo:7
+    container_name: foodfast-mongodata
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root-user
+      MONGO_INITDB_ROOT_PASSWORD: root-pass
+      MONGO_INITDB_DATABASE: productdb
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - backend
+
+  # --- REDIS (Dùng chung) ---
+  redis:
+    image: redis:7
+    container_name: foodfast-redis
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    networks:
+      - backend
+
+  # --- ADMINER (PostgreSQL UI) ---
+  adminer:
+    image: adminer:latest
+    container_name: foodfast-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+volumes:
+  # ⭐️ SỬA 4: Khai báo 2 volumes riêng biệt
+  pgdata-user:
+  pgdata-order:
+  redisdata:
+  mongodata:
+
+networks:
+  backend:
+    driver: bridge

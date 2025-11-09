@@ -1,16 +1,18 @@
 const Redis = require('ioredis');
 
+// Đọc thông tin kết nối từ biến môi trường đã định nghĩa trong docker-compose.yml
 const redisClient = new Redis({
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-    password: process.env.REDIS_PASSWORD,
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
 });
+
 redisClient.on('connect', () => {
-    console.log('Redis connected successfully');
+  console.log('✅ Connected to Redis successfully!');
 });
-redisClient.on('error', (err) => {
-    console.error('Redis connection error:', err);
-    process.exit(1);
+
+redisClient.on('error', (error) => {
+  console.error('❌ Redis connection error:', error);
+  // ⭐️ ĐÃ XÓA process.exit(1)
 });
 
 module.exports = redisClient;

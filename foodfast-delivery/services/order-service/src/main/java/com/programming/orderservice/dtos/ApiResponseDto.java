@@ -8,5 +8,5 @@ import lombok.Data;
 public class ApiResponseDto<T> {
     private boolean isSuccess;
     private String message;
-    private T response;
+    private T data;
 }

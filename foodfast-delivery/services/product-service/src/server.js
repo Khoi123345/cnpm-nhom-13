@@ -13,12 +13,15 @@ const connectDB = require('./config/database'); // Hàm kết nối MongoDB
 const errorHandler = require('./middleware/errorHandler'); // Middleware xử lý lỗi
 const productRoutes = require('./routes/productRoutes'); // Routes cho Product
 const restaurantRoutes = require('./routes/restaurantRoutes'); // Routes cho Restaurant
+const { startSubscriber } = require('./subscriber/messageBroker');
 
 // --- KẾT NỐI DATABASE ---
 connectDB(); 
 
 require('./models/Restaurant');
 require('./models/Product');
+
+startSubscriber();
 
 // --- KHỞI TẠO APP EXPRESS ---
 const app = express();
@@ -31,8 +34,10 @@ app.use(express.urlencoded({ extended: false })); // Parse request body dạng U
 
 // --- GẮN CÁC ROUTES ---   
 // Định nghĩa tiền tố chung cho các API endpoint
-app.use('/api/products', productRoutes);
-app.use('/api/restaurants', restaurantRoutes);
+const API_PREFIX = process.env.API_PREFIX || '/api/v1';
+
+app.use(`${API_PREFIX}/products`, productRoutes);
+app.use(`${API_PREFIX}/restaurants`, restaurantRoutes);
 
 // Route cơ bản để kiểm tra server có chạy không
 app.get('/', (req, res) => {

@@ -24,7 +24,11 @@ const restaurantSchema = new mongoose.Schema({
     },
     isActive: {
         type: Boolean,
-        default: true,
+        default: false,
+    },
+    isOnline: { 
+        type: Boolean,
+        default: false, // Mặc định là offline
     },
 }, { timestamps: true });
 exports.Restaurant = mongoose.model('Restaurant', restaurantSchema);

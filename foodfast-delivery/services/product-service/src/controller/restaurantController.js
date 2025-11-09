@@ -113,6 +113,29 @@ class RestaurantController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
+    /**
+     * @description Chủ nhà hàng cập nhật trạng thái online/offline
+     * @route PUT /api/restaurants/my-restaurant/status
+     * @access Private (Restaurant Owner)
+     */
+    async setOnlineStatus(req, res) {
+        try {
+            const ownerId = req.user.id; // Đây là ownerId (UUID)
+            const { isOnline } = req.body;
+
+            // Kiểm tra xem nhà hàng có tồn tại không
+            const restaurant = await RestaurantService.findByOwnerId(ownerId);
+            if (!restaurant) {
+                return res.status(404).json({ success: false, message: 'Restaurant not found for this owner' });
+            }
+
+            const updatedRestaurant = await RestaurantService.setOnlineRestaurant(ownerId, isOnline);
+            
+            return res.json({ success: true, restaurant: updatedRestaurant });
+        } catch (err) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
 
     // Các hàm khác (update, delete) có thể được thêm vào đây
     // Ví dụ: async updateMyRestaurant(req, res) { ... } (Chủ nhà hàng tự cập nhật)

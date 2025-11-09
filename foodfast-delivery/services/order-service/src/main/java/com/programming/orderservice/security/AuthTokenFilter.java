@@ -36,7 +36,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             String jwt = parseJwt(request);
             if (jwt != null) {
                 // ✅ DÙNG MOCK SERVICE
-                UserDetails userDetails = Objects.requireNonNull(mockAuthService.validateToken(jwt).getBody()).getResponse();
+                UserDetails userDetails = Objects.requireNonNull(mockAuthService.validateToken(jwt).getBody()).getData();
 
                 List<GrantedAuthority> authorities = userDetails.getAuthorities().stream()
                         .map(authority -> new SimpleGrantedAuthority(authority))

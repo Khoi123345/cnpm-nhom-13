@@ -25,6 +25,8 @@ router.get('/', authenticate, authorize('ADMIN'), userController.getAllUsers.bin
  */
 router.post('/admins', authenticate, authorize('ADMIN'), userController.createAdmin.bind(userController));
 
+router.put('/:id/approve', authenticate, authorize('ADMIN'), userController.approveRestaurant.bind(userController));
+
 /**
  * @route   GET /api/v1/users/:id
  * @desc    Lấy thông tin người dùng theo ID
@@ -45,5 +47,7 @@ router.put('/:id', authenticate, userController.updateUser.bind(userController))
  * @access  Private (Chính chủ hoặc Admin)
  */
 router.delete('/:id', authenticate, userController.deleteUser.bind(userController));
+
+
 
 module.exports = router;

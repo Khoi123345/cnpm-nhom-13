@@ -133,6 +133,15 @@ class UserController {
       next(error);
     }
   }
+  async approveRestaurant(req, res, next) {
+    try {
+      const { id } = req.params; // Đây là User ID
+      await userService.approveRestaurant(id);
+      res.json({ success: true, message: 'Restaurant approved successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

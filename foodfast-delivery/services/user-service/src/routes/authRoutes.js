@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
+const { authenticate } = require('../middleware/authMiddleware');
 
 
 const router = express.Router();
@@ -24,5 +25,12 @@ router.post('/login', authController.login.bind(authController));
  * @access  Public
  */
 router.post('/register-restaurant', authController.registerRestaurant.bind(authController));
+
+/**
+ * @route   POST /api/v1/auth/logout
+ * @desc    Logout user (và gửi event nếu là nhà hàng)
+ * @access  Private
+ */
+router.post('/logout', authenticate, authController.logout.bind(authController));
 
 module.exports = router;

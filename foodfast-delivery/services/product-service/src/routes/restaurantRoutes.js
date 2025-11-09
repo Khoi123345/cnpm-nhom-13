@@ -33,6 +33,13 @@ router.get(
     restaurantController.getMyRestaurant 
 );
 
+router.put(
+    '/my-restaurant/status',
+    authenticate,
+    authorize('RESTAURANT'),
+    restaurantController.setOnlineStatus
+);
+
 // === CÁC ROUTE CÔNG KHAI (hoặc cân nhắc) ===
 
 /**
