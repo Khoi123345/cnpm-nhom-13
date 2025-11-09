@@ -6,7 +6,7 @@ import { useCartContext } from "@/hooks/cart-provider"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
@@ -59,7 +59,7 @@ export default function CheckoutPage() {
 
       // 4. Gọi API (đến port 8082, endpoint /order/create)
       const response = await ApiClient.post(
-        `${API_CONFIG.ORDER_SERVICE}/order/create`,
+        `${API_ENDPOINTS.CREATE_ORDER}`,
         orderRequest
       )
 

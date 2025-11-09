@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ SỬA: Import API_ENDPOINTS
 import { Skeleton } from "@/components/ui/skeleton" // Thêm Skeleton để làm đẹp khi tải
 
 // ⭐️ ĐỊNH NGHĨA: Cấu trúc state cho dữ liệu
@@ -39,12 +39,12 @@ export function PlatformAnalytics() {
 
         // 1. Gọi song song 3 API để tăng tốc độ
         const [userRes, restaurantRes, orderRes] = await Promise.all([
-          // Lấy tổng user (dùng `limit=1` để lấy `totalItems` mà không cần tải cả nghìn user)
-          ApiClient.get<any>(`${API_CONFIG.USER_SERVICE}/api/v1/users?limit=1`),
-          // Lấy tổng nhà hàng (lọc theo role VÀ trạng thái active)
-          ApiClient.get<any>(`${API_CONFIG.USER_SERVICE}/api/v1/users?role=RESTAURANT&isActive=true&limit=1`),
-          // Lấy TẤT CẢ đơn hàng
-          ApiClient.get<Order[]>(`${API_CONFIG.ORDER_SERVICE}/order/get/all`)
+          // ⭐️ SỬA: Dùng hằng số
+          ApiClient.get<any>(`${API_ENDPOINTS.GET_USERS}?limit=1`),
+          // ⭐️ SỬA: Dùng hằng số
+          ApiClient.get<any>(`${API_ENDPOINTS.GET_USERS}?role=RESTAURANT&isActive=true&limit=1`),
+          // ⭐️ SỬA: Dùng hằng số
+          ApiClient.get<Order[]>(API_ENDPOINTS.GET_ALL_ORDERS)
         ])
 
         // 2. Xử lý kết quả từ user-service

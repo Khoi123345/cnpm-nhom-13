@@ -1,7 +1,11 @@
+// foodfast-delivery/frontend/hooks/use-auth.ts
+
 "use client"
 
 import { useState, useCallback } from "react"
 import { ApiClient } from "@/lib/api-client"
+// ⭐️ SỬA 1: Import API_ENDPOINTS
+import { API_ENDPOINTS } from "@/lib/environment"
 
 export interface User {
   id: string
@@ -28,7 +32,8 @@ export function useAuth() {
     setLoading(true)
     setError(null)
     try {
-      const response = await ApiClient.post("/api/v1/auth/register", {
+      // ⭐️ SỬA 2: Dùng hằng số
+      const response = await ApiClient.post(API_ENDPOINTS.AUTH_REGISTER, {
         email,
         password,
         full_name,
@@ -38,8 +43,6 @@ export function useAuth() {
         const keys = getStorageKeys("CUSTOMER")
         localStorage.setItem(keys.tokenKey, response.token!)
         localStorage.setItem(keys.userKey, JSON.stringify(response.user))
-        // localStorage.setItem("token", response.token!)
-        // localStorage.setItem("user", JSON.stringify(response.user))
         setUser(response.user)
         return response
       }
@@ -55,7 +58,8 @@ export function useAuth() {
     setLoading(true)
     setError(null)
     try {
-      const response = await ApiClient.post("/api/v1/auth/login", {
+      // ⭐️ SỬA 3: Dùng hằng số
+      const response = await ApiClient.post(API_ENDPOINTS.AUTH_LOGIN, {
         email,
         password,
       })
@@ -63,8 +67,6 @@ export function useAuth() {
         const keys = getStorageKeys(response.user.role)
         localStorage.setItem(keys.tokenKey, response.token!)
         localStorage.setItem(keys.userKey, JSON.stringify(response.user))
-        // localStorage.setItem("token", response.token!)
-        // localStorage.setItem("user", JSON.stringify(response.user))
         setUser(response.user)
         return response
       }
@@ -81,7 +83,8 @@ export function useAuth() {
       setLoading(true)
       setError(null)
       try {
-        const response = await ApiClient.post("/api/v1/auth/register-restaurant", {
+        // ⭐️ SỬA 4: Dùng hằng số
+        const response = await ApiClient.post(API_ENDPOINTS.AUTH_REGISTER_RESTAURANT, {
           email,
           password,
           full_name,
@@ -114,11 +117,11 @@ export function useAuth() {
       localStorage.removeItem("restaurant_user")
       localStorage.removeItem("admin_token")
       localStorage.removeItem("admin_user")
-      // Also remove old generic keys for backward compatibility
     }
     
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
+    // ⭐️ XOÁ: Các key cũ không còn cần thiết
+    // localStorage.removeItem("token")
+    // localStorage.removeItem("user")
     setUser(null)
   }, [])
 

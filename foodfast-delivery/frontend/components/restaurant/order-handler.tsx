@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { API_CONFIG } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ SỬA: Import API_ENDPOINTS
 import { ApiClient } from "@/lib/api-client"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -51,8 +51,9 @@ export function OrderHandler() {
     try {
       setLoading(true)
       setError(null)
+      // ⭐️ SỬA: Dùng hằng số
       const response = await ApiClient.get<Order[]>(
-        `${API_CONFIG.ORDER_SERVICE}/order/get/byRestaurant?restaurantId=${restaurantId}`
+        `${API_ENDPOINTS.GET_RESTAURANT_ORDERS}?restaurantId=${restaurantId}`
       )
       
       if (response.success) {
@@ -82,9 +83,10 @@ export function OrderHandler() {
 
   const handleUpdateStatus = async (orderId: number, status: OrderStatus) => {
     try {
-      // ⭐️ SỬA ĐỔI: Dùng API mới (PATCH thay vì PUT)
-      const response = await ApiClient.put( // Giữ .put vì ApiClient.ts chưa có .patch, controller vẫn là @PatchMapping
-        `${API_CONFIG.ORDER_SERVICE}/order/${orderId}/status?status=${status}`,
+      // ⭐️ SỬA: Dùng hằng số
+      const endpoint = API_ENDPOINTS.UPDATE_ORDER_STATUS.replace(":id", orderId.toString())
+      const response = await ApiClient.put( 
+        `${endpoint}?status=${status}`,
         {} 
       )
       if (response.success) {

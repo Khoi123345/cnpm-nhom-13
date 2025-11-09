@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useAuth } from "@/hooks/use-auth" 
 import { ApiClient } from "@/lib/api-client" 
-import { API_CONFIG } from "@/lib/environment" 
+import { API_ENDPOINTS } from "@/lib/environment" 
 
 // ⭐️ Cập nhật kiểu
 type OrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLATION_REQUESTED" | "CANCELLED" | "COMPLETED"
@@ -49,7 +49,7 @@ export default function MyOrders() {
       setLoading(true)
       setError(null)
       const response = await ApiClient.get<Order[]>(
-        `${API_CONFIG.ORDER_SERVICE}/order/get/byUser?mockUserId=${userId}` 
+        `${API_ENDPOINTS.GET_USER_ORDERS}?mockUserId=${userId}` 
       )
       
       if (response.success) {
@@ -73,8 +73,11 @@ export default function MyOrders() {
   // ⭐️ SỬA ĐỔI: Dùng API mới (PATCH thay vì PUT)
   const handleUpdateStatus = async (orderId: number, status: OrderStatus) => {
     try {
-      const response = await ApiClient.put( // Giữ .put
-        `${API_CONFIG.ORDER_SERVICE}/order/${orderId}/status?status=${status}`,
+      // ⭐️ SỬA: Dùng hằng số, thay thế :id và thêm query param
+      const endpoint = API_ENDPOINTS.UPDATE_ORDER_STATUS.replace(":id", orderId.toString())
+      
+      const response = await ApiClient.put( 
+        `${endpoint}?status=${status}`,
         {}
       )
       if (response.success) {

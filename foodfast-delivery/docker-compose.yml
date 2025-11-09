@@ -1,15 +1,31 @@
 version: "3.8"
 
 services:
+  # --- API GATEWAY (Nginx) --- ⭐️ THÊM MỚI
+  api-gateway:
+    image: nginx:latest
+    container_name: foodfast-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:80" # Cổng DUY NHẤT mà frontend sẽ gọi
+    volumes:
+      # Map file config Nginx chúng ta vừa tạo ở Bước 1
+      - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - backend
+
   # --- FRONTEND (Next.js) ---
   web:
     build:
-      context: ./frontend # ⭐️ SỬA: Trỏ đến thư mục frontend
+      context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      # ⭐️ SỬA: Thêm 'frontend/' vào trước tất cả các đường dẫn
       - ./frontend/app:/app/app
       - ./frontend/components:/app/components
       - ./frontend/hooks:/app/hooks
@@ -25,14 +41,11 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_USER_API_URL=http://localhost:3001
-      - NEXT_PUBLIC_PRODUCT_API_URL=http://localhost:3002
-      - NEXT_PUBLIC_ORDER_SERVICE_URL=http://localhost:8082
+      # ⭐️ SỬA: Chỉ cần MỘT URL duy nhất trỏ đến Gateway
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api
     command: npm run dev
     depends_on:
-      - user-service
-      - product-service
-      - order-service
+      - api-gateway # ⭐️ SỬA: Frontend giờ phụ thuộc vào gateway
     networks:
       - backend
 
@@ -43,8 +56,9 @@ services:
       dockerfile: Dockerfile
     container_name: foodfast-user-service
     restart: unless-stopped
-    ports:
-      - "3001:3000"
+    # ⭐️ XOÁ: Không cần public cổng 3001 nữa
+    # ports:
+    #   - "3001:3000"
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -73,8 +87,9 @@ services:
       dockerfile: Dockerfile
     container_name: foodfast-product-service
     restart: unless-stopped
-    ports:
-      - "3002:3002"
+    # ⭐️ XOÁ: Không cần public cổng 3002 nữa
+    # ports:
+    #   - "3002:3002"
     environment:
       - NODE_ENV=development
       - PORT=3002
@@ -95,28 +110,29 @@ services:
   # --- ORDER SERVICE (Spring Boot) ---
   order-service:
     build:
-      context: ./services/order-service # Trỏ đến thư mục order-service
+      context: ./services/order-service
       dockerfile: Dockerfile
     container_name: foodfast-order-service
     restart: unless-stopped
-    ports:
-      - "8082:8082" # Expose cổng 8082
+    # ⭐️ XOÁ: Không cần public cổng 8082 nữa
+    # ports:
+    #   - "8082:8082"
     environment:
       - SERVER_PORT=8082
       - SPRING_PROFILES_ACTIVE=docker
-      # ⭐️ SỬA 1: Trỏ đến server "db-order"
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db-order:5432/Order-service
-      - SPRING_DATASOURCE_USERNAME=postgres # Dùng user 'postgres'
-      - SPRING_DATASOURCE_PASSWORD=123456 # Dùng pass từ service 'db-order'
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_CLOUD_DISCOVERY_ENABLED=false
       
     depends_on:
-      - db-order # Phụ thuộc vào service 'db-order'
+      - db-order
       - redis
     networks:
       - backend
-  # --- POSTGRES (User Service DB) ---
+
+  # --- (Các service database và adminer giữ nguyên) ---
   db:
     image: postgres:16
     container_name: foodfast-postgres-user
@@ -126,12 +142,10 @@ services:
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: foodfastdb
     volumes:
-      # ⭐️ SỬA 2: Volume riêng cho user-service
       - pgdata-user:/var/lib/postgresql/data
     networks:
       - backend
   
-  # --- POSTGRES (Order Service DB) ---
   db-order:
     image: postgres:16
     container_name: foodfast-postgres-order
@@ -141,12 +155,10 @@ services:
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: Order-service
     volumes:
-      # ⭐️ SỬA 3: Volume riêng cho order-service
       - pgdata-order:/var/lib/postgresql/data
     networks:
       - backend
 
-  # --- MONGO (Product Service DB) ---
   mongo-db:
     image: mongo:7
     container_name: foodfast-mongodata
@@ -160,7 +172,6 @@ services:
     networks:
       - backend
 
-  # --- REDIS (Dùng chung) ---
   redis:
     image: redis:7
     container_name: foodfast-redis
@@ -170,18 +181,16 @@ services:
     networks:
       - backend
 
-  # --- ADMINER (PostgreSQL UI) ---
   adminer:
     image: adminer:latest
     container_name: foodfast-adminer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8080" # ⭐️ SỬA: Đổi cổng adminer thành 8081 để tránh xung đột với gateway 8080
     networks:
       - backend
 
 volumes:
-  # ⭐️ SỬA 4: Khai báo 2 volumes riêng biệt
   pgdata-user:
   pgdata-order:
   redisdata:

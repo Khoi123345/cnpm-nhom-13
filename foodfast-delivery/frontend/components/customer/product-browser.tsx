@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ SỬA: Xoá API_CONFIG
 import { useCartContext } from "@/hooks/cart-provider"
 import { ApiClient } from "@/lib/api-client" 
 
@@ -35,19 +35,16 @@ export function ProductBrowser() {
         setLoading(true);
         setError(null); 
 
+        // ⭐️ SỬA: Dùng hằng số
         const response = await ApiClient.get<Product[]>(
-          `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_PRODUCTS}`
+          API_ENDPOINTS.GET_PRODUCTS
         );
         
         if (response.success) {
-          // ⭐️ SỬA 2: Lọc ra chỉ những sản phẩm CÓ SỐ LƯỢNG > 0
-          // (Bạn có thể bỏ .filter() nếu muốn hiển thị cả sản phẩm hết hàng)
           const availableProducts = (response.data || []).filter(
              (p) => p.quantity > 0
            );
            setProducts(availableProducts);
-          // Hoặc nếu muốn hiển thị cả sản phẩm hết hàng:
-          // setProducts(response.data || []); 
         } else {
           setError(response.message);
         }

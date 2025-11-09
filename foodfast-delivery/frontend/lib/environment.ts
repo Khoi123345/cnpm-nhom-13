@@ -1,38 +1,37 @@
-// API endpoints configuration
-export const API_CONFIG = {
-  USER_SERVICE: process.env.NEXT_PUBLIC_USER_SERVICE_URL || "http://localhost:3001",
-  PRODUCT_SERVICE: process.env.NEXT_PUBLIC_PRODUCT_SERVICE_URL || "http://localhost:3002",
-  ORDER_SERVICE: process.env.NEXT_PUBLIC_ORDER_SERVICE_URL || "http://localhost:8082",
-  PAYMENT_SERVICE: process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || "http://localhost:8081",
-}
+// foodfast-delivery/frontend/lib/environment.ts
+
+// ⭐️ TOÀN BỘ API_CONFIG ĐÃ BỊ XOÁ
 
 export const API_ENDPOINTS = {
-  // Auth
-  AUTH_REGISTER: "/api/v1/auth/register",
-  AUTH_LOGIN: "/api/v1/auth/login",
-  AUTH_REGISTER_RESTAURANT: "/api/v1/auth/register-restaurant",
-  AUTH_LOGOUT: "/api/v1/auth/logout",
+  // Auth (từ user-service, qua /api/auth/)
+  AUTH_REGISTER: "/auth/register",
+  AUTH_LOGIN: "/auth/login",
+  AUTH_REGISTER_RESTAURANT: "/auth/register-restaurant",
+  AUTH_LOGOUT: "/auth/logout",
 
-  // Products
-  GET_PRODUCTS: "/api/v1/products",
-  CREATE_PRODUCT: "/api/v1/products",
-  UPDATE_PRODUCT: "/api/v1/products/:id",
-  DELETE_PRODUCT: "/api/v1/products/:id",
-  GET_MY_PRODUCTS: "/api/v1/products/my-products",
+  // Products (từ product-service, qua /api/products/)
+  GET_PRODUCTS: "/products",
+  GET_PRODUCT_DETAIL: "/products/:id", // ⭐️ THÊM: Cho trang [productId]
+  CREATE_PRODUCT: "/products",
+  UPDATE_PRODUCT: "/products/:id",
+  DELETE_PRODUCT: "/products/:id",
+  GET_MY_PRODUCTS: "/products/my-products",
 
-  // Restaurants
-  GET_RESTAURANTS: "/api/v1/restaurants",
-  GET_RESTAURANT: "/api/v1/restaurants/:id",
-  CREATE_RESTAURANT: "/api/v1/restaurants",
-  GET_MY_RESTAURANT: "/api/v1/restaurants/my-restaurant",
+  // Restaurants (từ product-service, qua /api/restaurants/)
+  GET_RESTAURANTS: "/restaurants",
+  GET_RESTAURANT: "/restaurants/:id",
+  CREATE_RESTAURANT: "/restaurants",
+  GET_MY_RESTAURANT: "/restaurants/my-restaurant",
 
-  // Orders
-  CREATE_ORDER: "/api/order",
-  GET_ORDER: "/api/order/:id",
-  GET_USER_ORDERS: "/api/order/user/:userId",
-  UPDATE_ORDER_STATUS: "/api/order/:id",
+  // Orders (từ order-service, qua /api/orders/)
+  CREATE_ORDER: "/orders/create", // ⭐️ SỬA: Khớp /order/create
+  GET_ALL_ORDERS: "/orders/get/all", // ⭐️ THÊM: Cho admin analytics
+  GET_USER_ORDERS: "/orders/get/byUser", // ⭐️ SỬA: Khớp /order/get/byUser
+  GET_RESTAURANT_ORDERS: "/orders/get/byRestaurant", // ⭐️ THÊM: Cho restaurant handler
+  UPDATE_ORDER_STATUS: "/orders/:id/status", // ⭐️ SỬA: Khớp /order/:id/status
 
-  // Users
-  GET_USERS: "/api/v1/users",
-  GET_USER: "/api/v1/users/:id",
+  // Users (từ user-service, qua /api/users/)
+  GET_USERS: "/users",
+  GET_USER: "/users/:id",
+  // (Endpoint cho 'approve' là /users/:id/approve, sẽ được nối thủ công)
 }

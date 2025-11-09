@@ -10,7 +10,7 @@ import { MenuManager } from "@/components/restaurant/menu-manager"
 import { OrderHandler } from "@/components/restaurant/order-handler"
 import { useAuth } from "@/hooks/use-auth"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment" // ⭐️ Sửa 1: Import API_ENDPOINTS
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ Sửa 1: Import API_ENDPOINTS
 
 export default function RestaurantDashboard() {
   const router = useRouter()
@@ -50,7 +50,7 @@ export default function RestaurantDashboard() {
         try {
           // ⭐️ SỬA 3: Dùng .put và đúng endpoint
           await ApiClient.put(
-            `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
+            `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
             {
               isOnline: true,
             }
@@ -80,7 +80,7 @@ export default function RestaurantDashboard() {
             try {
               // ⭐️ SỬA 5: Dùng .put và đúng endpoint
               await ApiClient.put(
-                `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_MY_RESTAURANT}/status`,
+                `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`,
                 {
                   isOnline: false,
                 }
@@ -101,7 +101,7 @@ export default function RestaurantDashboard() {
     try {
       // ⭐️ SỬA 6: Dùng .put và đúng endpoint
       await ApiClient.put(
-        `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
+        `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
         {
           isOnline: false,
         }

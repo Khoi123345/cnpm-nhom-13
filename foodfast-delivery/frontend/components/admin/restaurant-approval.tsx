@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment";
+import { API_ENDPOINTS } from "@/lib/environment"; // ⭐️ SỬA: Xoá API_CONFIG
 
 interface RestaurantRequest {
   id: string
@@ -33,16 +33,13 @@ export function RestaurantApproval() {
     try {
       setLoading(true)
       
-      // Dùng ApiClient (đã tự động đính kèm token)
-      // Kiểu 'any' ở đây vì response từ API không khớp với ApiResponse<T>
+      // ⭐️ SỬA: Dùng hằng số
       const response: any = await ApiClient.get( 
-        `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_RESTAURANTS}`
+        API_ENDPOINTS.GET_RESTAURANTS
       );
       
       if (!response.success) throw new Error("Failed to fetch restaurants");
 
-      // ⭐️ SỬA LỖI TẠI ĐÂY:
-      // Dữ liệu nằm trong `response.restaurants`, không phải `response.data.restaurants`
       const pendingRequests = (response.restaurants || []) 
         .filter((r: any) => !r.isActive) // Lọc những nhà hàng chưa được kích hoạt
         .map((r: any) => ({
@@ -67,8 +64,9 @@ export function RestaurantApproval() {
 
   const handleApprove = async (id: string) => { 
     try {
+      // ⭐️ SỬA: Dùng hằng số
       const response = await ApiClient.put(
-          `${API_CONFIG.USER_SERVICE}${API_ENDPOINTS.GET_USERS}/${id}/approve`, // Dùng biến env
+          `${API_ENDPOINTS.GET_USERS}/${id}/approve`, // Nối chuỗi thủ công
           {} 
       );
 

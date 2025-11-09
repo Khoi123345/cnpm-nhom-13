@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment"
 
 // ⭐️ Định nghĩa kiểu Order (phải khớp với EOrderStatus.java)
 type OrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLATION_REQUESTED" | "CANCELLED" | "COMPLETED"
@@ -28,9 +28,9 @@ export function OrderManagement() {
     try {
       setLoading(true)
       setError(null)
-      // Dùng endpoint /get/all của Admin
+      // ⭐️ SỬA: Dùng hằng số
       const response = await ApiClient.get<Order[]>(
-        `${API_CONFIG.ORDER_SERVICE}/order/get/all` 
+        API_ENDPOINTS.GET_ALL_ORDERS 
       )
       
       if (response.success) {
@@ -60,8 +60,10 @@ export function OrderManagement() {
   // ⭐️ Hàm cập nhật trạng thái (Admin có quyền)
   const handleUpdateStatus = async (orderId: number, status: OrderStatus) => {
     try {
-      const response = await ApiClient.put( // Giữ .put vì ApiClient.ts chưa có .patch
-        `${API_CONFIG.ORDER_SERVICE}/order/${orderId}/status?status=${status}`,
+      // ⭐️ SỬA: Dùng hằng số
+      const endpoint = API_ENDPOINTS.UPDATE_ORDER_STATUS.replace(":id", orderId.toString())
+      const response = await ApiClient.put(
+        `${endpoint}?status=${status}`,
         {}
       )
       if (response.success) {

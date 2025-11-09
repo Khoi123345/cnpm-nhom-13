@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link" // ⭐️ THÊM IMPORT
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ SỬA: Xoá API_CONFIG
 import { ApiClient } from "@/lib/api-client"
 
 interface MenuItem {
@@ -42,8 +42,9 @@ export function MenuManager() {
     try {
       setLoading(true)
       setError(null)
+      // ⭐️ SỬA: Dùng hằng số
       const response = await ApiClient.get<MenuItem[]>(
-        `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_MY_PRODUCTS}`,
+        API_ENDPOINTS.GET_MY_PRODUCTS,
       )
       if (response.success) {
         setItems(response.data || [])
@@ -61,8 +62,9 @@ export function MenuManager() {
     e.preventDefault()
     setError(null)
     try {
+      // ⭐️ SỬA: Dùng hằng số
       const response = await ApiClient.post(
-        `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.CREATE_PRODUCT}`,
+        API_ENDPOINTS.CREATE_PRODUCT,
         {
           ...formData, // Gửi tất cả data
           price: Number.parseFloat(formData.price), // Ghi đè price thành số
@@ -92,11 +94,12 @@ export function MenuManager() {
     if (!confirm("Are you sure you want to delete this item?")) return
 
     try {
+      // ⭐️ SỬA: Dùng hằng số
       await ApiClient.delete(
-        `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.DELETE_PRODUCT.replace(
+        API_ENDPOINTS.DELETE_PRODUCT.replace(
           ":id",
           id,
-        )}`,
+        ),
       )
       fetchMenuItems()
     } catch (err: any) {

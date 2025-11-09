@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ SỬA: Xoá API_CONFIG
+import { ApiClient } from "@/lib/api-client" // ⭐️ THÊM: Import ApiClient
 
 interface Restaurant {
   _id: string
@@ -26,16 +27,19 @@ export function RestaurantList({ onSelectRestaurant }: RestaurantListProps) { //
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // ... (fetchRestaurants giữ nguyên)
     const fetchRestaurants = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.GET_RESTAURANTS}`)
-        const data = await response.json()
+        // ⭐️ SỬA: Dùng ApiClient thay vì fetch
+        const data: any = await ApiClient.get(API_ENDPOINTS.GET_RESTAURANTS)
 
-        const onlineRestaurants = (data.restaurants || []).filter(
-          (r: Restaurant) => r.isActive === true && r.isOnline === true,
-        )
+        // ⭐️ SỬA: Logic trích xuất data
+        // (Giả định product-service trả về { restaurants: [...] }
+        // không giống các service khác)
+        const onlineRestaurants = (data.restaurants || []) 
+          .filter(
+            (r: Restaurant) => r.isActive === true && r.isOnline === true,
+          )
         setRestaurants(onlineRestaurants)
       } catch (err: any) {
         setError(err.message)

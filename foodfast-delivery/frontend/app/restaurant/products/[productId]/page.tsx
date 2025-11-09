@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/hooks/use-auth"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment"
 
 interface MenuItem {
   _id: string
@@ -71,10 +71,9 @@ export default function ProductEditPage() {
       setLoading(true)
       setError(null)
       try {
-        // API endpoint này lấy chi tiết 1 sản phẩm
-        const response = await ApiClient.get<MenuItem>(
-          `${API_CONFIG.PRODUCT_SERVICE}/api/v1/products/${productId}`,
-        )
+        // ⭐️ SỬA: Dùng hằng số mới GET_PRODUCT_DETAIL
+        const endpoint = API_ENDPOINTS.GET_PRODUCT_DETAIL.replace(":id", productId)
+        const response = await ApiClient.get<MenuItem>(endpoint)
 
         if (response.success && response.data) {
           setOriginalData(response.data) // Lưu bản gốc
@@ -112,7 +111,7 @@ export default function ProductEditPage() {
   // 4. Hàm Cập nhật (Update)
   const handleUpdateItem = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData) return
+    if (!formData || !originalData) return // ⭐️ Thêm check originalData
 
     setLoading(true)
     setError(null)
@@ -125,11 +124,11 @@ export default function ProductEditPage() {
         quantity: Number.parseInt(String(formData.quantity), 10),
       }
 
+      // ⭐️ SỬA: Xoá API_CONFIG
+      const endpoint = API_ENDPOINTS.UPDATE_PRODUCT.replace(":id", originalData._id)
+      
       const response = await ApiClient.put(
-        `${API_CONFIG.PRODUCT_SERVICE}${API_ENDPOINTS.UPDATE_PRODUCT.replace(
-          ":id",
-          originalData._id,
-        )}`,
+        endpoint,
         updateData,
       )
 

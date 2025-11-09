@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ApiClient } from "@/lib/api-client"
-import { API_CONFIG, API_ENDPOINTS } from "@/lib/environment"
+import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ SỬA: Xoá API_CONFIG
 import { useAuth, type User } from "@/hooks/use-auth" // Import User type
 
 export function ProfileManager() {
@@ -63,13 +63,12 @@ export function ProfileManager() {
     setSuccess(null)
 
     try {
-      // Gọi API đến user-service (đã hỗ trợ sẵn PUT /api/v1/users/:id)
+      // ⭐️ SỬA: Dùng hằng số và nối chuỗi
       const response = await ApiClient.put(
-        `${API_CONFIG.USER_SERVICE}${API_ENDPOINTS.GET_USERS}/${userId}`,
+        `${API_ENDPOINTS.GET_USERS}/${userId}`,
         {
           full_name: formData.full_name,
           phone: formData.phone,
-          // API backend (userController) chỉ cập nhật 'full_name' và 'phone'
         }
       )
 
