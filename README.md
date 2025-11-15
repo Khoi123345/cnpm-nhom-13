@@ -26,7 +26,7 @@ Hệ thống đặt đồ ăn trực tuyến với giao hàng bằng drone, đư
 | **Payment Service** | Java 17, Spring Boot | Thanh toán VNPay |
 | **Databases** | PostgreSQL, MongoDB | PostgreSQL: User & Order; MongoDB: Product |
 | **Gateway** | Nginx | API Gateway |
-| **DevOps** | Docker, Docker Compose | Deploy & orchestrate |
+| **DevOps** | Docker, Docker Compose | Container hóa và điều phối các service, tạo môi trường (local) để giao tiếp |
 
 ---
 
