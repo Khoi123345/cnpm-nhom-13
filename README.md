@@ -6,11 +6,11 @@ Hệ thống đặt đồ ăn trực tuyến với giao hàng bằng drone, đư
 
 ✅ **Hoàn thành** (Sẵn sàng để demo!)
 
--   Backend APIs (Microservices): Hoàn thành
+-   Backend APIs (Microservices): chưa Hoàn thành
 -   Frontend UI (Next.js): Hoàn thành
 -   Quản lý Cửa hàng: Hoàn thành
--   Quản lý Drone: Hoàn thành
--   Tích hợp Thanh toán (VNPay): Hoàn thành
+-   Quản lý Drone: chưa Hoàn thành
+-   Tích hợp Thanh toán (VNPay): chưa Hoàn thành
 -   [cite_start]Tài liệu (PRD): Cập nhật [cite: 1]
 
 ---
