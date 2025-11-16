@@ -24,6 +24,7 @@ Hệ thống đặt đồ ăn trực tuyến với giao hàng bằng drone, đư
 | **Product Service** | Node.js, Express | Quản lý cửa hàng & món ăn |
 | **Order Service** | Java 17, Spring Boot | Xử lý đơn hàng và trạng thái |
 | **Payment Service** | Java 17, Spring Boot | Thanh toán VNPay |
+| **Drone Service** | Java17, Spring Boot | Quản lý drone đi giao hàng |
 | **Databases** | PostgreSQL, MongoDB | PostgreSQL: User & Order; MongoDB: Product |
 | **Gateway** | Nginx | API Gateway |
 | **DevOps** | Docker, Docker Compose | Container hóa và điều phối các service, tạo môi trường (local) để giao tiếp |
@@ -41,7 +42,8 @@ foodfast-delivery/
 │   ├── user-service/
 │   ├── product-service/
 │   ├── order-service/
-│   └── payment-service/
+│   ├── payment-service/
+|   └── drone-service/
 ├── docker-compose.yml
 ├── PRD_FoodFastDelivery.docx
 └── README.md
