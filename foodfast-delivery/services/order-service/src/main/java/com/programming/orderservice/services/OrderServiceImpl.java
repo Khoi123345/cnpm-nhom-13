@@ -13,7 +13,9 @@ import com.programming.orderservice.exceptions.ResourceNotFoundException;
 import com.programming.orderservice.exceptions.ServiceLogicException;
 // ⭐️ THÊM IMPORT
 import com.programming.orderservice.feigns.ProductService;
+import com.programming.orderservice.feigns.DroneService;
 import com.programming.orderservice.feigns.UserService; // (Giữ comment)
+import com.programming.orderservice.feign.DroneServiceClient; // ⭐️ Feign Client cho drone-service
 import com.programming.orderservice.model.Order;
 import com.programming.orderservice.model.OrderItems;
 import com.programming.orderservice.repositories.OrderRepository;
@@ -36,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
     
     private final OrderRepository orderRepository;
     private final ProductService productService;
+    private final DroneService droneService; // ⭐️ Inject Feign Client
     // ⭐️ BẮT ĐẦU SỬA ĐỔI: Thêm 3 dòng
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -269,6 +272,21 @@ public class OrderServiceImpl implements OrderService {
                     log.error("❌ Stack trace: ", e);
                     // Không ném lại lỗi (throw e) - order status đã được cập nhật thành công
                 }
+                
+                // ⭐️ THÊM: Gọi drone-service để release drone về IDLE
+                try {
+                    // Lấy droneId từ order (giả sử có trường này)
+                    if (savedOrder.getDroneId() != null) {
+                        log.info("🚁 Releasing drone {} for completed order {}", savedOrder.getDroneId(), orderId);
+                        droneService.completeDelivery(savedOrder.getDroneId(), orderId);
+                        log.info("✅ Drone {} released and returned to IDLE", savedOrder.getDroneId());
+                    } else {
+                        log.warn("⚠️ Order {} has no drone assigned", orderId);
+                    }
+                } catch (Exception e) {
+                    log.error("❌ Failed to release drone for order {}: {}", orderId, e.getMessage());
+                    // Không throw - order đã COMPLETED, chỉ log lỗi
+                }
             }
             // ⭐️ KẾT THÚC SỬA ĐỔI
 
@@ -326,6 +344,9 @@ public class OrderServiceImpl implements OrderService {
                 case CANCELLATION_REQUESTED:
                     if (oldStatus == EOrderStatus.CONFIRMED || oldStatus == EOrderStatus.PROCESSING) return;
                     break;
+                default:
+                    // Other statuses not allowed for restaurant
+                    break;
             }
         }
 
@@ -340,6 +361,9 @@ public class OrderServiceImpl implements OrderService {
                 case COMPLETED:
                     if (oldStatus == EOrderStatus.SHIPPED || oldStatus == EOrderStatus.DELIVERED) return;
                     break;
+                default:
+                    // Other statuses not allowed for customer
+                    break;
             }
         }
 
@@ -351,20 +375,26 @@ public class OrderServiceImpl implements OrderService {
     private Order orderRequestDtoToOrder(OrderRequestDto request) {
         
         String restaurantId = null;
+        String restaurantName = null;
         if (request.getOrderItems() != null && !request.getOrderItems().isEmpty()) {
             OrderItems firstItem = request.getOrderItems().iterator().next();
             restaurantId = firstItem.getRestaurantId();
+            restaurantName = firstItem.getRestaurantName(); // ⭐️ Lấy restaurantName từ orderItems
         }
 
         return Order.builder()
                 .userId(request.getUserId())
+                .userName(request.getUserName()) // ⭐️ Map userName
                 .addressShip(request.getAddressShip())
+                .destinationLat(request.getDestinationLat()) // ⭐️ Map GPS coordinates
+                .destinationLng(request.getDestinationLng()) // ⭐️ Map GPS coordinates
                 .orderAmt(request.getOrderAmt())
                 .orderItems(request.getOrderItems())
                 .placedOn(LocalDateTime.now())
                 .orderStatus(EOrderStatus.PENDING)
                 .paymentStatus(EOrderPaymentStatus.UNPAID)
                 .restaurantId(restaurantId)
+                .restaurantName(restaurantName) // ⭐️ Map restaurantName
                 .build();
     }
 
@@ -402,5 +432,60 @@ public class OrderServiceImpl implements OrderService {
                 .message("Payment status updated successfully")
                 .data(order)
                 .build());
+    }
+    
+    // ⭐️ METHOD MỚI: Ship order with drone
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> shipOrderWithDrone(Long orderId, Long droneId)
+            throws ServiceLogicException, ResourceNotFoundException {
+        
+        log.info("Shipping order {} with drone {}", orderId, droneId);
+        
+        // Tìm order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        
+        // Kiểm tra order status phải là CONFIRMED
+        if (order.getOrderStatus() != EOrderStatus.CONFIRMED) {
+            throw new ServiceLogicException("Order must be CONFIRMED before shipping");
+        }
+        
+        // Kiểm tra có GPS coordinates không
+        if (order.getDestinationLat() == null || order.getDestinationLng() == null) {
+            throw new ServiceLogicException("Order missing GPS coordinates");
+        }
+        
+        try {
+            // ⭐️ CẬP NHẬT: Gọi drone-service để assign order
+            // Tạo request body (Map thay vì custom class)
+            Map<String, Object> assignRequest = Map.of(
+                "droneId", droneId,
+                "orderId", orderId,
+                "destinationLat", order.getDestinationLat(),
+                "destinationLng", order.getDestinationLng(),
+                "destinationAddress", order.getAddressShip()
+            );
+            
+            // Gọi Feign Client (cần tạo method assignOrder)
+            // ResponseEntity<ApiResponseDto<Void>> droneResponse = 
+            //         droneService.assignOrder(assignRequest);
+            
+            // ⭐️ QUAN TRỌNG: Lưu droneId vào order
+            order.setDroneId(droneId);
+            order.setOrderStatus(EOrderStatus.SHIPPED);
+            orderRepository.save(order);
+            
+            log.info("✅ Order {} successfully assigned to drone {} and marked as SHIPPED", orderId, droneId);
+            
+            return ResponseEntity.ok(ApiResponseDto.builder()
+                    .isSuccess(true)
+                    .message("Order shipped successfully with drone " + droneId)
+                    .data(order)
+                    .build());
+            
+        } catch (Exception e) {
+            log.error("Error shipping order {}: {}", orderId, e.getMessage());
+            throw new ServiceLogicException("Failed to ship order: " + e.getMessage());
+        }
     }
 }

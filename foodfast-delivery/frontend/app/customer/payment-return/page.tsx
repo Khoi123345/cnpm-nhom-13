@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import Link from "next/link"
 import { PaymentService } from "@/lib/payment-service"
 import { useCartContext } from "@/hooks/cart-provider"
 
-export default function PaymentReturnPage() {
+function PaymentReturnContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { clearCart } = useCartContext()
@@ -150,5 +150,13 @@ export default function PaymentReturnPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PaymentReturnPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <PaymentReturnContent />
+    </Suspense>
   )
 }

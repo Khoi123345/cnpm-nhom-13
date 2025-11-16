@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
 import { PaymentService } from "@/lib/payment-service"
+import AddressMapPicker from "@/components/customer/address-map-picker-wrapper"
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartContext()
@@ -18,8 +19,16 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deliveryAddress, setDeliveryAddress] = useState("")
+  const [destinationLat, setDestinationLat] = useState<number | null>(null)
+  const [destinationLng, setDestinationLng] = useState<number | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "VNPAY">("COD")
   const { getStorageKeys } = useAuth()
+
+  const handleLocationSelect = (lat: number, lng: number, address: string) => {
+    setDestinationLat(lat)
+    setDestinationLng(lng)
+    setDeliveryAddress(address)
+  }
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,6 +53,9 @@ export default function CheckoutPage() {
       if (!user) {
         throw new Error("You must be logged in to check out.")
       }
+      
+      console.log("User object:", user) // ⭐️ Debug log
+      console.log("Cart items:", items) // ⭐️ Debug log
 
       // 2. Định dạng OrderItems theo Model Java
       const orderItems = items.map((item) => ({
@@ -53,16 +65,22 @@ export default function CheckoutPage() {
         price: item.price,
         subtotal: item.price * item.quantity,
         restaurantId: item.restaurantId,
+        restaurantName: item.restaurantName, // ⭐️ Thêm restaurantName
       }))
 
       // 3. Định dạng OrderRequest DTO
-      const totalAmount = getTotalPrice() + 2.99
+      const totalAmount = getTotalPrice() + deliveryFee
       const orderRequest = {
         userId: user.id,
+        userName: user.full_name || user.email || "Unknown User", // ⭐️ Dùng full_name từ database
         addressShip: deliveryAddress,
         orderAmt: totalAmount,
         orderItems: orderItems,
+        destinationLat: destinationLat, // ⭐️ GPS coordinates cho drone delivery
+        destinationLng: destinationLng,
       }
+      
+      console.log("Order request:", orderRequest) // ⭐️ Debug log
 
       // 4. Tạo đơn hàng
       const response = await ApiClient.post(
@@ -164,14 +182,20 @@ export default function CheckoutPage() {
           {error && <div className="bg-destructive/10 text-destructive p-3 rounded mb-4">{error}</div>}
           <form onSubmit={handleCheckout} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Delivery Address</label>
+              <label className="block text-sm font-medium mb-2">📍 Delivery Location</label>
+              <AddressMapPicker onLocationSelect={handleLocationSelect} />
+              <p className="text-xs text-foreground/60 mt-2">
+                Click on the map to select your delivery location. This will enable drone delivery tracking.
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Delivery Address (Optional)</label>
               <textarea
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
                 className="w-full px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                placeholder="Enter your delivery address"
-                rows={3}
-                required
+                placeholder="Additional delivery notes or manual address entry"
+                rows={2}
               />
             </div>
             <div>

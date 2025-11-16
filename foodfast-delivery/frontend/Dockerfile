@@ -1,23 +1,29 @@
 # ---- Base stage ----
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 WORKDIR /app
 
-# Cài build tools + PostgreSQL client dev
-RUN apk add --no-cache python3 make g++ bash postgresql-dev
+# Install dependencies needed for Next.js
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # ---- Dependencies stage ----
 FROM base AS deps
 
 COPY package.json package-lock.json* ./
 
-# Cài dependencies, bỏ qua peer deps
-RUN npm install --legacy-peer-deps
+# Install dependencies
+RUN npm ci --legacy-peer-deps
 
 # ---- Build stage ----
-FROM deps AS builder
+FROM base AS builder
 
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Set environment for build
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build Next.js
 RUN npm run build
@@ -26,13 +32,20 @@ RUN npm run build
 FROM base AS runner
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy standalone build
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

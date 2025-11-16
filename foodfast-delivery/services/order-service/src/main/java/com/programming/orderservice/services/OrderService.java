@@ -31,4 +31,8 @@ public interface OrderService {
     // ⭐️ THÊM METHOD MỚI
     ResponseEntity<ApiResponseDto<?>> updatePaymentStatus(Long orderId, String paymentStatus)
             throws ServiceLogicException, ResourceNotFoundException;
+    
+    // ⭐️ Gán drone và ship đơn hàng
+    ResponseEntity<ApiResponseDto<?>> shipOrderWithDrone(Long orderId, Long droneId)
+            throws ServiceLogicException, ResourceNotFoundException;
 }

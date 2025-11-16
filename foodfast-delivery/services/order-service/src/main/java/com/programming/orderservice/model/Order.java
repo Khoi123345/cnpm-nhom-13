@@ -22,6 +22,8 @@ public class Order {
     private Long id;
 
     private String userId;
+    
+    private String userName; // ⭐️ Thêm field lưu tên user
 
     private String addressShip;
 
@@ -30,6 +32,14 @@ public class Order {
     private LocalDateTime placedOn;
 
     private String restaurantId;
+    
+    private String restaurantName; // ⭐️ Thêm field lưu tên restaurant
+    
+    private Long droneId; // ⭐️ ID của drone giao hàng
+    
+    private Double destinationLat; // ⭐️ Vĩ độ điểm giao hàng
+    
+    private Double destinationLng; // ⭐️ Kinh độ điểm giao hàng
 
     @Enumerated(EnumType.STRING)
     private EOrderStatus orderStatus;

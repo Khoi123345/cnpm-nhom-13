@@ -1,0 +1,13 @@
+{
+  "name": "drone-simulator",
+  "version": "1.0.0",
+  "description": "Drone GPS simulator for FoodFast delivery system",
+  "main": "simulator.js",
+  "scripts": {
+    "start": "node simulator.js"
+  },
+  "dependencies": {
+    "sockjs-client": "^1.6.1",
+    "@stomp/stompjs": "^7.0.0"
+  }
+}
