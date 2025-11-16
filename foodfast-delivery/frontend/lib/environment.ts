@@ -39,4 +39,14 @@ export const API_ENDPOINTS = {
   GET_MY_PAYMENTS: "/api/payments/me",
   GET_PAYMENT: "/api/payments/:id",
   GET_ALL_PAYMENTS_ADMIN: "/api/payments/admin/all",
+
+  // Drones (from drone-service, via API Gateway)
+  GET_MY_DRONES: "/api/v1/drones/my-restaurant",
+  GET_AVAILABLE_DRONES: "/api/v1/drones/my-restaurant/available",
+  SUBMIT_DRONE_REQUEST: "/api/v1/drones/registration-requests",
+  GET_MY_DRONE_REQUESTS: "/api/v1/drones/my-requests",
+  GET_PENDING_DRONE_REQUESTS: "/api/v1/admin/drones/requests/pending",
+  APPROVE_DRONE_REQUEST: "/api/v1/admin/drones/requests/:id/approve",
+  REJECT_DRONE_REQUEST: "/api/v1/admin/drones/requests/:id/reject",
+  GET_ALL_DRONES: "/api/v1/admin/drones/all",
 }

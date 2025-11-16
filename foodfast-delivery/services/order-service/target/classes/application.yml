@@ -25,6 +25,7 @@ feign:
   client:
     product-service-url: http://localhost:3002
     user-service-url: http://localhost:3001
+    drone-service-url: http://localhost:8086
 
 # URL mặc định cho Feign Client khi chạy local
 ---
@@ -51,3 +52,4 @@ feign:
   client:
     product-service-url: http://product-service:3002
     user-service-url: http://user-service:3000
+    drone-service-url: http://drone-service:8086

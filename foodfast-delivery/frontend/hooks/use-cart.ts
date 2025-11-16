@@ -8,6 +8,7 @@ export interface CartItem {
   price: number
   quantity: number
   restaurantId: string
+  restaurantName: string // ⭐️ Thêm field
 }
 
 export function useCart() {
@@ -15,6 +16,16 @@ export function useCart() {
 
   const addToCart = useCallback((item: Omit<CartItem, "quantity">) => {
     setItems((prevItems) => {
+      // ⭐️ Kiểm tra nếu giỏ hàng đã có sản phẩm từ nhà hàng khác
+      if (prevItems.length > 0) {
+        const existingRestaurantId = prevItems[0].restaurantId
+        if (existingRestaurantId !== item.restaurantId) {
+          // Thông báo lỗi và không thêm
+          alert(`Bạn chỉ có thể đặt món từ một nhà hàng. Giỏ hàng hiện tại có món từ "${prevItems[0].restaurantName}". Vui lòng xóa giỏ hàng để đặt từ nhà hàng khác.`)
+          return prevItems
+        }
+      }
+      
       const existingItem = prevItems.find((i) => i.id === item.id)
       if (existingItem) {
         return prevItems.map((i) => (i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i))

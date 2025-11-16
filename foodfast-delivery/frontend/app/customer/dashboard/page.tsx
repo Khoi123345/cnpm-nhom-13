@@ -19,6 +19,7 @@ export default function CustomerDashboard() {
   
   // ⭐️ SỬA 1: Thêm "profile" vào kiểu trạng thái
   const [activeTab, setActiveTab] = useState<"restaurants" | "products" | "profile">("restaurants")
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null) // ⭐️ THÊM state
 
   // ... (phần useEffect xác thực giữ nguyên)
   useEffect(() => {
@@ -129,9 +130,12 @@ export default function CustomerDashboard() {
           <div className={activeTab === 'profile' ? "lg:col-span-3" : "lg:col-span-2 space-y-8"}>
             
             {activeTab === "restaurants" && (
-              <RestaurantList onSelectRestaurant={() => setActiveTab("products")} />
+              <RestaurantList onSelectRestaurant={(restaurantId) => {
+                setSelectedRestaurantId(restaurantId)
+                setActiveTab("products")
+              }} />
             )}
-            {activeTab === "products" && <ProductBrowser />}
+            {activeTab === "products" && <ProductBrowser selectedRestaurantId={selectedRestaurantId} />}
             
             {/* KHI CLICK TAB MỚI, HIỂN THỊ COMPONENT MỚI */}
             {activeTab === "profile" && <ProfileManager />}

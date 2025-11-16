@@ -171,5 +171,16 @@ public class OrderController {
         String paymentStatus = request.get("paymentStatus");
         return orderService.updatePaymentStatus(orderId, paymentStatus);
     }
+    
+    // ⭐️ ENDPOINT MỚI: Gửi lệnh xuất phát (gán drone)
+    @PostMapping("/{orderId}/ship")
+    public ResponseEntity<ApiResponseDto<?>> shipOrder(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, Object> request
+    ) throws ResourceNotFoundException, ServiceLogicException {
+        Long droneId = Long.valueOf(request.get("droneId").toString());
+        return orderService.shipOrderWithDrone(orderId, droneId);
+    }
 }
+
 

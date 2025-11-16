@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MenuManager } from "@/components/restaurant/menu-manager"
 import { OrderHandler } from "@/components/restaurant/order-handler"
+import RestaurantDroneManager from "@/components/restaurant/drone-manager"
 import { useAuth } from "@/hooks/use-auth"
 import { ApiClient } from "@/lib/api-client"
 import { API_ENDPOINTS } from "@/lib/environment" // ⭐️ Sửa 1: Import API_ENDPOINTS
@@ -16,7 +17,7 @@ export default function RestaurantDashboard() {
   const router = useRouter()
   const { logout, getStorageKeys } = useAuth()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [activeTab, setActiveTab] = useState<"menu" | "orders">("menu")
+  const [activeTab, setActiveTab] = useState<"menu" | "orders" | "drones">("menu")
 
   useEffect(() => {
     const keys = getStorageKeys("RESTAURANT")
@@ -146,6 +147,16 @@ export default function RestaurantDashboard() {
             >
               Orders
             </button>
+            <button
+              onClick={() => setActiveTab("drones")}
+              className={`font-medium transition ${
+                activeTab === "drones"
+                  ? "text-primary border-b-2 border-primary pb-1"
+                  : "text-foreground/70 hover:text-foreground"
+              }`}
+            >
+              🚁 Drones
+            </button>
             <Link href="/restaurant/settings" className="text-foreground/70 hover:text-foreground">
               Settings
             </Link>
@@ -169,6 +180,13 @@ export default function RestaurantDashboard() {
           <div>
             <h2 className="text-3xl font-bold mb-8">Order Management</h2>
             <OrderHandler />
+          </div>
+        )}
+
+        {activeTab === "drones" && (
+          <div>
+            <h2 className="text-3xl font-bold mb-8">🚁 Drone Fleet Management</h2>
+            <RestaurantDroneManager />
           </div>
         )}
       </main>

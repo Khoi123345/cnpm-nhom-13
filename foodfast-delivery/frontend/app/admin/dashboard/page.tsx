@@ -11,11 +11,12 @@ import { RestaurantApproval } from "@/components/admin/restaurant-approval"
 import { PlatformAnalytics } from "@/components/admin/platform-analytics"
 import { useAuth } from "@/hooks/use-auth" // ⭐️ THÊM IMPORT NÀY
 import { OrderManagement } from "@/components/admin/order-management"
+import AdminDroneApproval from "@/components/admin/drone-approval"
 
 export default function AdminDashboard() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [activeTab, setActiveTab] = useState<"analytics" | "users" | "restaurants" | "orders">("analytics")
+  const [activeTab, setActiveTab] = useState<"analytics" | "users" | "restaurants" | "orders" | "drones">("analytics")
   const { logout, getStorageKeys } = useAuth() // ⭐️ THÊM HOOK NÀY
 
   useEffect(() => {
@@ -111,6 +112,17 @@ export default function AdminDashboard() {
               Orders
             </button>
             
+            <button
+              onClick={() => setActiveTab("drones")}
+              className={`font-medium transition ${
+                activeTab === "drones"
+                  ? "text-primary border-b-2 border-primary pb-1"
+                  : "text-foreground/70 hover:text-foreground"
+              }`}
+            >
+              🚁 Drones
+            </button>
+            
             <Link href="/admin/settings" className="text-foreground/70 hover:text-foreground">
               Settings
             </Link>
@@ -155,6 +167,13 @@ export default function AdminDashboard() {
           <div>
             <h2 className="text-3xl font-bold mb-8">Order Management</h2>
             <OrderManagement />
+          </div>
+        )}
+        
+        {activeTab === "drones" && (
+          <div>
+            <h2 className="text-3xl font-bold mb-8">🚁 Drone Registration Management</h2>
+            <AdminDroneApproval />
           </div>
         )}
       </main>

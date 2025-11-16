@@ -26,25 +26,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend/app:/app/app
-      - ./frontend/components:/app/components
-      - ./frontend/hooks:/app/hooks
-      - ./frontend/lib:/app/lib
-      - ./frontend/public:/app/public
-      - ./frontend/styles:/app/styles
-      - ./frontend/package.json:/app/package.json
-      - ./frontend/pnpm-lock.yaml:/app/pnpm-lock.yaml
-      - ./frontend/next.config.mjs:/app/next.config.mjs
-      - ./frontend/tsconfig.json:/app/tsconfig.json
-      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs
-      - ./frontend/components.json:/app/components.json
-      - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       # ⭐️ SỬA: URL không có /api vì endpoint đã chứa /api
       - NEXT_PUBLIC_API_URL=http://localhost:8080
-    command: npm run dev
     depends_on:
       - api-gateway # ⭐️ SỬA: Frontend giờ phụ thuộc vào gateway
     networks:
@@ -158,6 +143,32 @@ services:
     networks:
       - backend
 
+  # --- DRONE SERVICE (Spring Boot + WebSocket) ---
+  drone-service:
+    build:
+      context: ./services/drone-service
+      dockerfile: Dockerfile
+    container_name: foodfast-drone-service
+    restart: unless-stopped
+    environment:
+      - SERVER_PORT=8086
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-drone:5432/Drone-service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-12345
+      - DELIVERY_MAX_DISTANCE_KM=10.0
+      - DELIVERY_BATTERY_CONSUMPTION_PER_KM=5.0
+      - DELIVERY_SPEED_KMH=30.0
+    depends_on:
+      - db-drone
+      - redis
+    networks:
+      - backend
+
   # --- (Các service database và adminer giữ nguyên) ---
   db:
     image: postgres:16
@@ -198,6 +209,19 @@ services:
     networks:
       - backend
 
+  db-drone:
+    image: postgres:16
+    container_name: foodfast-postgres-drone
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: Drone-service
+    volumes:
+      - pgdata-drone:/var/lib/postgresql/data
+    networks:
+      - backend
+
   mongo-db:
     image: mongo:7
     container_name: foodfast-mongodata
@@ -233,6 +257,7 @@ volumes:
   pgdata-user:
   pgdata-order:
   pgdata-payment:
+  pgdata-drone:
   redisdata:
   mongodata:
 

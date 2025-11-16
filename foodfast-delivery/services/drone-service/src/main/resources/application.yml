@@ -1,0 +1,42 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: drone-service
+  
+  datasource:
+    url: jdbc:postgresql://db-drone:5432/Drone-service
+    username: postgres
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+# JWT Configuration (phải giống user-service)
+jwt:
+  secret: your-super-secret-jwt-key-change-this-in-production-12345
+  expiration: 86400000
+
+# Delivery Configuration (Tầm giao hàng tối đa)
+delivery:
+  max-distance-km: 10.0
+  battery-consumption-per-km: 5.0  # Mỗi km tiêu tốn 5% pin
+  speed-kmh: 30.0  # Tốc độ drone 30 km/h
+
+logging:
+  level:
+    com.foodfast.droneservice: DEBUG
+    org.springframework.web: INFO

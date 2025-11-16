@@ -16,7 +16,10 @@ import java.util.Set;
 public class OrderRequestDto {
 
     private String userId;
+    private String userName; // ⭐️ Thêm field
     private String addressShip;
+    private Double destinationLat; // ⭐️ GPS coordinates
+    private Double destinationLng; // ⭐️ GPS coordinates
     private BigDecimal orderAmt;
 
     private Set<OrderItems> orderItems;

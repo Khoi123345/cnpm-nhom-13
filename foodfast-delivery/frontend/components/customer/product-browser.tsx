@@ -23,7 +23,11 @@ interface Product {
   }
 }
 
-export function ProductBrowser() {
+interface ProductBrowserProps {
+  selectedRestaurantId?: string | null // ⭐️ Restaurant ID được chọn
+}
+
+export function ProductBrowser({ selectedRestaurantId }: ProductBrowserProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -41,9 +45,17 @@ export function ProductBrowser() {
         );
         
         if (response.success) {
-          const availableProducts = (response.data || []).filter(
+          let availableProducts = (response.data || []).filter(
              (p) => p.quantity > 0
            );
+           
+           // ⭐️ Nếu có selectedRestaurantId, chỉ hiển thị sản phẩm của nhà hàng đó
+           if (selectedRestaurantId) {
+             availableProducts = availableProducts.filter(
+               (p) => p.restaurant?.owner_id === selectedRestaurantId
+             );
+           }
+           
            setProducts(availableProducts);
         } else {
           setError(response.message);
@@ -63,7 +75,8 @@ export function ProductBrowser() {
       id: product._id,
       name: product.name,
       price: product.price,
-      restaurantId: product.restaurant?.owner_id || "unknown", 
+      restaurantId: product.restaurant?.owner_id || "unknown",
+      restaurantName: product.restaurant?.name || "Unknown Restaurant", // ⭐️ Thêm restaurantName
     })
   }
 
@@ -73,13 +86,28 @@ export function ProductBrowser() {
   if (products.length === 0) {
     return (
        <Card className="p-10 text-center text-foreground/70 col-span-full">
-         No menu items available at the moment.
+         {selectedRestaurantId 
+           ? "This restaurant has no menu items available at the moment." 
+           : "No menu items available at the moment."}
        </Card>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div>
+      {/* ⭐️ Hiển thị tên nhà hàng nếu đang filter */}
+      {selectedRestaurantId && products.length > 0 && (
+        <div className="mb-6 p-4 bg-muted rounded-lg">
+          <h3 className="text-xl font-bold">
+            {products[0].restaurant?.name || "Restaurant"} Menu
+          </h3>
+          <p className="text-sm text-foreground/70 mt-1">
+            Browse items from this restaurant
+          </p>
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {products.map((product) => (
         <Card key={product._id} className="overflow-hidden hover:shadow-lg transition-shadow">
           <div className="bg-muted h-40 flex items-center justify-center">
@@ -125,6 +153,7 @@ export function ProductBrowser() {
           </div>
         </Card>
       ))}
+    </div>
     </div>
   )
 }
