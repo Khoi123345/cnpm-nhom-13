@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Fix hydration mismatch caused by browser extensions */
+html.mdl-js {
+  /* Reset any classes added by extensions */
+}
+
+[bis_skin_checked],
+[bis_register],
+[__processed_*] {
+  /* These attributes are added by browser extensions and cause hydration mismatch */
+  /* They are harmless but trigger warnings in development */
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

@@ -164,7 +164,7 @@ export default function MyOrders() {
                   {order.orderStatus}
                 </span>
               </div>
-              <p className="text-lg font-semibold mb-4">${order.orderAmt.toFixed(2)}</p>
+              <p className="text-lg font-semibold mb-4">{order.orderAmt.toLocaleString('vi-VN')}₫</p>
               
               {/* ⭐️ SỬA ĐỔI: Nút bấm theo điều kiện */}
               {order.orderStatus === "PENDING" && (

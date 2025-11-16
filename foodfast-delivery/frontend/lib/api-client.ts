@@ -1,6 +1,6 @@
 // ff/lib/api-client.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
 export interface ApiResponse<T> {
   success: boolean
@@ -16,7 +16,16 @@ function isAbsoluteURL(url: string) {
 }
 
 export class ApiClient {
-  private static getHeaders() {
+  private static getHeaders(skipAuth = false) {
+    const baseHeaders = {
+      "Content-Type": "application/json",
+    }
+
+    // Nếu skipAuth = true (dùng cho login/register), không gửi token
+    if (skipAuth) {
+      return baseHeaders
+    }
+
     const path = typeof window !== "undefined" ? window.location.pathname : ""
     let token: string | null = null
 
@@ -48,19 +57,19 @@ export class ApiClient {
 
     // 3. Trả về headers
     return {
-      "Content-Type": "application/json",
+      ...baseHeaders,
       ...(token && { Authorization: `Bearer ${token}` }),
     }
   }
 
-  static async post<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
+  static async post<T>(endpoint: string, data: any, skipAuth = false): Promise<ApiResponse<T>> {
     try {
       // ⭐️ SỬA ĐỔI TẠI ĐÂY
       const url = isAbsoluteURL(endpoint) ? endpoint : `${API_BASE_URL}${endpoint}`
 
       const response = await fetch(url, { // ⭐️ Dùng url
         method: "POST",
-        headers: this.getHeaders(),
+        headers: this.getHeaders(skipAuth),
         body: JSON.stringify(data),
       })
       if (!response.ok) {

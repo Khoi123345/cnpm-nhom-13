@@ -180,7 +180,7 @@ export function OrderHandler() {
                   <div>
                     <h4 className="font-bold">Order #{order.id}</h4>
                     <p className="text-sm text-foreground/70">{order.addressShip}</p>
-                    <p className="text-lg font-bold text-primary">${order.orderAmt.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-primary">{order.orderAmt.toLocaleString('vi-VN')}₫</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusChipColor(order.orderStatus)}`}>
                     {order.orderStatus}
@@ -190,7 +190,7 @@ export function OrderHandler() {
                   {order.orderItems.map(item => (
                      <div key={item.id} className="flex justify-between text-sm">
                        <span>{item.quantity} x {item.productName}</span>
-                       <span>${(item.price * item.quantity).toFixed(2)}</span>
+                       <span>{(item.price * item.quantity).toLocaleString('vi-VN')}₫</span>
                      </div>
                   ))}
                 </div>

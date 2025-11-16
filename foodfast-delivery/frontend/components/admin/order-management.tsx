@@ -103,7 +103,7 @@ export function OrderManagement() {
                     <p className="text-sm">User: {order.userId}</p>
                     <p className="text-sm">Restaurant: {order.restaurantId}</p>
                   </div>
-                   <span className="text-lg font-bold">${order.orderAmt.toFixed(2)}</span>
+                   <span className="text-lg font-bold">{order.orderAmt.toLocaleString('vi-VN')}₫</span>
                </div>
                <div className="flex gap-2 mt-4">
                   <Button className="flex-1" variant="destructive" onClick={() => handleUpdateStatus(order.id, "CANCELLED")}>
@@ -137,7 +137,7 @@ export function OrderManagement() {
               <tr key={order.id} className="hover:bg-muted/50">
                 <td className="px-4 py-3 font-medium">#{order.id}</td>
                 <td className="px-4 py-3">{order.orderStatus}</td>
-                <td className="px-4 py-3">${order.orderAmt.toFixed(2)}</td>
+                <td className="px-4 py-3">{order.orderAmt.toLocaleString('vi-VN')}₫</td>
                 <td className="px-4 py-3 text-xs">{order.userId}</td>
                 <td className="px-4 py-3 text-xs">{order.restaurantId}</td>
                 <td className="px-4 py-3 text-xs">{new Date(order.placedOn).toLocaleString()}</td>

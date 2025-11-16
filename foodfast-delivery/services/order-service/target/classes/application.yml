@@ -20,6 +20,12 @@ spring:
   server:
     port: 8082
 
+# ⭐️ THÊM: Cấu hình URL cho Feign Clients (local)
+feign:
+  client:
+    product-service-url: http://localhost:3002
+    user-service-url: http://localhost:3001
+
 # URL mặc định cho Feign Client khi chạy local
 ---
 spring:
@@ -33,10 +39,15 @@ spring:
   redis:
     host: redis
     port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
 
-  cloud:
-    loadbalancer:
-      static: # <-- ⭐️ SỬA: Thêm "static" ở đây
-        clients:
-          PRODUCT-SERVICE: http://product-service:3002 # ⭐️ SỬA: Đổi định dạng
-          USER-SERVICE: http://user-service:3000
+# ⭐️ THÊM: Cấu hình URL cho Feign Clients (docker)
+feign:
+  client:
+    product-service-url: http://product-service:3002
+    user-service-url: http://user-service:3000

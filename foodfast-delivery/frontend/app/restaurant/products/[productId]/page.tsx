@@ -223,16 +223,18 @@ export default function ProductEditPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="price" className="block text-sm font-medium mb-2">
-                    Price
+                    Price (VND)
                   </Label>
                   <Input
                     id="price"
                     name="price"
                     type="number"
-                    step="0.01"
+                    step="1"
+                    min="0"
                     value={formData.price}
                     onChange={handleFormChange}
                     className="w-full"
+                    placeholder="e.g., 50000"
                     required
                   />
                 </div>

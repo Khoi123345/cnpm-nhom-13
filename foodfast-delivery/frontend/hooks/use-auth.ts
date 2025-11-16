@@ -38,7 +38,7 @@ export function useAuth() {
         password,
         full_name,
         phone,
-      })
+      }, true)
       if (response.success) {
         const keys = getStorageKeys("CUSTOMER")
         localStorage.setItem(keys.tokenKey, response.token!)
@@ -62,9 +62,13 @@ export function useAuth() {
       const response = await ApiClient.post(API_ENDPOINTS.AUTH_LOGIN, {
         email,
         password,
-      })
+      }, true)
+      
+      console.log('Login response:', response) // DEBUG
+      
       if (response.success) {
         const keys = getStorageKeys(response.user.role)
+        console.log('Saving token to:', keys.tokenKey, 'Token:', response.token) // DEBUG
         localStorage.setItem(keys.tokenKey, response.token!)
         localStorage.setItem(keys.userKey, JSON.stringify(response.user))
         setUser(response.user)
@@ -72,6 +76,7 @@ export function useAuth() {
       }
       setError(response.message)
     } catch (err: any) {
+      console.error('Login error:', err) // DEBUG
       setError(err.message)
     } finally {
       setLoading(false)
@@ -90,7 +95,7 @@ export function useAuth() {
           full_name,
           phone,
           restaurant_address,
-        })
+        }, true)
         if (response.success) {
           return response
         }

@@ -30,16 +30,19 @@ export function RestaurantList({ onSelectRestaurant }: RestaurantListProps) { //
     const fetchRestaurants = async () => {
       try {
         setLoading(true)
-        // ⭐️ SỬA: Dùng ApiClient thay vì fetch
-        const data: any = await ApiClient.get(API_ENDPOINTS.GET_RESTAURANTS)
+        const response = await ApiClient.get<any>(API_ENDPOINTS.GET_RESTAURANTS)
 
-        // ⭐️ SỬA: Logic trích xuất data
-        // (Giả định product-service trả về { restaurants: [...] }
-        // không giống các service khác)
-        const onlineRestaurants = (data.restaurants || []) 
-          .filter(
-            (r: Restaurant) => r.isActive === true && r.isOnline === true,
-          )
+        console.log('Restaurant API response:', response) // Debug log
+        
+        // Extract restaurants from response.data
+        const restaurantData = response.data?.restaurants || response.data || []
+        
+        const onlineRestaurants = restaurantData.filter(
+          (r: Restaurant) => r.isActive === true && r.isOnline === true,
+        )
+        
+        console.log('Filtered online restaurants:', onlineRestaurants) // Debug log
+        
         setRestaurants(onlineRestaurants)
       } catch (err: any) {
         setError(err.message)
