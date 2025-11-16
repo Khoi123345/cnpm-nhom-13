@@ -159,17 +159,17 @@ export function MenuManager() {
             {/* ⭐️ SỬA LỖI LAYOUT TẠI ĐÂY: Thêm div grid wrapper */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2"> {/* Price chiếm 2 cột */}
-                <label className="block text-sm font-medium mb-2">Price</label>
+                <label className="block text-sm font-medium mb-2">Price (VND)</label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   value={formData.price}
                   onChange={(e) =>
                     setFormData({ ...formData, price: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                  placeholder="9.99"
+                  placeholder="50000"
                   required
                 />
               </div>
@@ -251,7 +251,7 @@ export function MenuManager() {
               
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-primary">
-                  ${item.price.toFixed(2)}
+                  {item.price.toLocaleString('vi-VN')}₫
                 </span>
                 <div className="flex gap-2">
                   <Button

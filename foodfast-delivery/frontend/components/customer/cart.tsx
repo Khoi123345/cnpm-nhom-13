@@ -17,7 +17,7 @@ export function Cart() {
     )
   }
   
-  const deliveryFee = 2.99
+  const deliveryFee = 15000 // Phí giao hàng 15,000 VND
   const totalPrice = getTotalPrice()
   const totalAmt = totalPrice + deliveryFee
 
@@ -30,7 +30,7 @@ export function Cart() {
           <div key={item.id} className="flex justify-between items-center pb-4 border-b border-border">
             <div>
               <p className="font-medium">{item.name}</p>
-              <p className="text-sm text-foreground/70">${item.price.toFixed(2)}</p>
+              <p className="text-sm text-foreground/70">{item.price.toLocaleString('vi-VN')}₫</p>
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -60,15 +60,15 @@ export function Cart() {
       <div className="border-t border-border pt-4 mb-6">
         <div className="flex justify-between items-center mb-2">
           <span className="text-foreground/70">Subtotal</span>
-          <span>${totalPrice.toFixed(2)}</span>
+          <span>{totalPrice.toLocaleString('vi-VN')}₫</span>
         </div>
         <div className="flex justify-between items-center mb-2">
           <span className="text-foreground/70">Delivery Fee</span>
-          <span>${deliveryFee.toFixed(2)}</span>
+          <span>{deliveryFee.toLocaleString('vi-VN')}₫</span>
         </div>
         <div className="flex justify-between items-center text-lg font-bold">
           <span>Total</span>
-          <span className="text-primary">${totalAmt.toFixed(2)}</span>
+          <span className="text-primary">{totalAmt.toLocaleString('vi-VN')}₫</span>
         </div>
       </div>
 

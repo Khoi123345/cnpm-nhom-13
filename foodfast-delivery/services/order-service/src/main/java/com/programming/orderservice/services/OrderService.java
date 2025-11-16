@@ -28,4 +28,7 @@ public interface OrderService {
     ResponseEntity<ApiResponseDto<?>> updateOrderStatus(Long orderId, EOrderStatus newStatus, String userId, String userRole)
             throws ServiceLogicException, ResourceNotFoundException;
 
+    // ⭐️ THÊM METHOD MỚI
+    ResponseEntity<ApiResponseDto<?>> updatePaymentStatus(Long orderId, String paymentStatus)
+            throws ServiceLogicException, ResourceNotFoundException;
 }

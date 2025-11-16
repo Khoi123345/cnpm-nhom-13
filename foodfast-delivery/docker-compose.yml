@@ -15,6 +15,7 @@ services:
       - user-service
       - product-service
       - order-service
+      - payment-service
     networks:
       - backend
 
@@ -41,8 +42,8 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
-      # ⭐️ SỬA: Chỉ cần MỘT URL duy nhất trỏ đến Gateway
-      - NEXT_PUBLIC_API_URL=http://localhost:8080/api
+      # ⭐️ SỬA: URL không có /api vì endpoint đã chứa /api
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
     command: npm run dev
     depends_on:
       - api-gateway # ⭐️ SỬA: Frontend giờ phụ thuộc vào gateway
@@ -132,6 +133,31 @@ services:
     networks:
       - backend
 
+  # --- PAYMENT SERVICE (Spring Boot + VNPay) ---
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: foodfast-payment-service
+    restart: unless-stopped
+    environment:
+      - SERVER_PORT=8085
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-payment:5432/Payment-service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - VNPAY_RETURN_URL=http://localhost:3000/customer/payment-return
+      - VNPAY_TMN_CODE=0LJWVZP7
+      - VNPAY_HASH_SECRET=5SDVJZTMOJMFFTJ4LSM08Q34TTM65J4M
+      - VNPAY_API_URL=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+    depends_on:
+      - db-payment
+      - order-service
+    networks:
+      - backend
+
   # --- (Các service database và adminer giữ nguyên) ---
   db:
     image: postgres:16
@@ -156,6 +182,19 @@ services:
       POSTGRES_DB: Order-service
     volumes:
       - pgdata-order:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  db-payment:
+    image: postgres:16
+    container_name: foodfast-postgres-payment
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: Payment-service
+    volumes:
+      - pgdata-payment:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -193,6 +232,7 @@ services:
 volumes:
   pgdata-user:
   pgdata-order:
+  pgdata-payment:
   redisdata:
   mongodata:
 

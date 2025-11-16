@@ -367,4 +367,40 @@ public class OrderServiceImpl implements OrderService {
                 .restaurantId(restaurantId)
                 .build();
     }
+
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> updatePaymentStatus(Long orderId, String paymentStatus)
+            throws ServiceLogicException, ResourceNotFoundException {
+        
+        log.info("Updating payment status for order {} to {}", orderId, paymentStatus);
+        
+        // Tìm order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        
+        // ⭐️ SỬA: Convert String sang EOrderPaymentStatus enum
+        EOrderPaymentStatus paymentStatusEnum;
+        try {
+            paymentStatusEnum = EOrderPaymentStatus.valueOf(paymentStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ServiceLogicException("Invalid payment status: " + paymentStatus);
+        }
+        
+        // Cập nhật payment status
+        order.setPaymentStatus(paymentStatusEnum);
+        
+        // Nếu payment status là PAID, tự động chuyển order status sang CONFIRMED
+        if (paymentStatusEnum == EOrderPaymentStatus.PAID && order.getOrderStatus() == EOrderStatus.PENDING) {
+            order.setOrderStatus(EOrderStatus.CONFIRMED);
+            log.info("Auto-confirmed order {} after successful payment", orderId);
+        }
+        
+        orderRepository.save(order);
+        
+        return ResponseEntity.ok(ApiResponseDto.builder()
+                .isSuccess(true)
+                .message("Payment status updated successfully")
+                .data(order)
+                .build());
+    }
 }

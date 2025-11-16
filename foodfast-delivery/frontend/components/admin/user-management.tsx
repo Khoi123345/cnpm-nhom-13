@@ -31,8 +31,8 @@ export function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      // SỬA ĐỔI: Gọi đến endpoint /api/v1/users
-      const response = await ApiClient.get("/api/v1/users")
+      // Gọi qua API Gateway
+      const response = await ApiClient.get("/api/users")
       if (response.success) {
         setUsers(response.data)
       } else {
@@ -51,7 +51,7 @@ export function UserManagement() {
 
   const handleBan = async (userId: string) => {
     try {
-      const response = await ApiClient.post(`/api/v1/users/${userId}/ban`, {})
+      const response = await ApiClient.post(`/api/users/${userId}/ban`, {})
       if (response.success) {
         setUsers(currentUsers =>
           currentUsers.map(user =>
@@ -69,7 +69,7 @@ export function UserManagement() {
 
   const handleUnban = async (userId: string) => {
     try {
-      const response = await ApiClient.post(`/api/v1/users/${userId}/unban`, {})
+      const response = await ApiClient.post(`/api/users/${userId}/unban`, {})
       if (response.success) {
         setUsers(currentUsers =>
           currentUsers.map(user =>

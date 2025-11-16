@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -163,4 +164,12 @@ public class OrderController {
             );
         }
     }
+
+    //  ENDPOINT CẬP NHẬT PAYMENT STATUS
+    @PutMapping("/{orderId}/payment-status")
+    public ResponseEntity<ApiResponseDto<?>> updatePaymentStatus(@PathVariable Long orderId, @RequestBody Map<String, String> request) throws ResourceNotFoundException, ServiceLogicException {
+        String paymentStatus = request.get("paymentStatus");
+        return orderService.updatePaymentStatus(orderId, paymentStatus);
+    }
 }
+

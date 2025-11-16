@@ -108,7 +108,7 @@ export function ProductBrowser() {
 
             {/* ⭐️ SỬA 3: Logic cho nút Add to Cart */}
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
+              <span className="text-lg font-bold text-primary">{product.price.toLocaleString('vi-VN')}₫</span>
               
               {product.quantity > 0 ? (
                 <Button size="sm" onClick={() => handleAddToCart(product)}>
