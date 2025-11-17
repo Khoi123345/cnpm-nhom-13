@@ -206,6 +206,28 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> getOrderById(Long orderId)
+            throws ResourceNotFoundException, ServiceLogicException {
+        try {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+            return ResponseEntity.ok(
+                    ApiResponseDto.builder()
+                            .isSuccess(true)
+                            .message("Order retrieved successfully")
+                            .data(order)
+                            .build()
+            );
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("❌ Error getting order {}: {}", orderId, e.getMessage());
+            throw new ServiceLogicException("Cannot get order by id!");
+        }
+    }
+
     // 🟪 Cập nhật trạng thái đơn hàng - ⭐️ ĐÃ SỬA
     @Override
     public ResponseEntity<ApiResponseDto<?>> updateOrderStatus(Long orderId, EOrderStatus newStatus, String userId, String userRole)
@@ -445,9 +467,10 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
         
-        // Kiểm tra order status phải là CONFIRMED
-        if (order.getOrderStatus() != EOrderStatus.CONFIRMED) {
-            throw new ServiceLogicException("Order must be CONFIRMED before shipping");
+        // Kiểm tra order status phải là CONFIRMED hoặc PROCESSING để khớp với UI flow
+        EOrderStatus currentStatus = order.getOrderStatus();
+        if (currentStatus != EOrderStatus.CONFIRMED && currentStatus != EOrderStatus.PROCESSING) {
+            throw new ServiceLogicException("Order must be CONFIRMED or PROCESSING before shipping");
         }
         
         // Kiểm tra có GPS coordinates không

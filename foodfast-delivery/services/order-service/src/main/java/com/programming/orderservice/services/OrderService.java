@@ -19,6 +19,9 @@ public interface OrderService {
     ResponseEntity<ApiResponseDto<?>> getOrdersByRestaurant(String restaurantId)
             throws ResourceNotFoundException, ServiceLogicException;
 
+    ResponseEntity<ApiResponseDto<?>> getOrderById(Long orderId)
+            throws ResourceNotFoundException, ServiceLogicException;
+
     ResponseEntity<ApiResponseDto<?>> cancelOrder(Long orderId)
             throws ServiceLogicException, ResourceNotFoundException;
 

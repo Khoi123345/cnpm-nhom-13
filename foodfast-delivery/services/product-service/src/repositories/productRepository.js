@@ -23,6 +23,11 @@ class ProductRepository {
         return await Product.find().populate('restaurant');
     }
 
+    async findByRestaurantIds(restaurantIds) {
+        const Product = mongoose.models.Product;
+        return await Product.find({ restaurant: { $in: restaurantIds } }).populate('restaurant');
+    }
+
     async updateProduct(productId, updateData) {
         const Product = mongoose.models.Product;
         return await Product.findByIdAndUpdate(

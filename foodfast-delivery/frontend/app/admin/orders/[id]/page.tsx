@@ -56,7 +56,7 @@ export default function AdminOrderDetailPage() {
   const loadDroneInfo = async () => {
     try {
       // Get delivery log for this order
-      const response = await ApiClient.get<any>(`/api/v1/drones/internal/delivery-logs/order/${orderId}`);
+      const response = await ApiClient.get<any>(`/api/drones/internal/delivery-logs/order/${orderId}`);
       if (response.data) {
         setDroneInfo(response.data);
       }

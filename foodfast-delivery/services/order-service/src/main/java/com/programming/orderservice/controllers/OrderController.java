@@ -63,6 +63,12 @@ public class OrderController {
         return orderService.getOrdersByRestaurant(resId);
     }
 
+    @GetMapping("/get/byId")
+    public ResponseEntity<ApiResponseDto<?>> getOrderById(@RequestParam Long id)
+            throws ResourceNotFoundException, ServiceLogicException {
+        return orderService.getOrderById(id);
+    }
+
     @GetMapping("/get/all")
     public ResponseEntity<ApiResponseDto<?>> getAllOrders()
             throws ResourceNotFoundException, ServiceLogicException {

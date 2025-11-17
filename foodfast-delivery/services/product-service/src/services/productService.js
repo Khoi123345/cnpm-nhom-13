@@ -31,7 +31,11 @@ const productService = {
 
   // Lấy tất cả product của tất cả nhà hàng
   async getAllProducts() {
-    return await productRepository.getAllProducts();
+    // Chỉ lấy sản phẩm từ nhà hàng đang hoạt động và online
+    const activeOnlineRestaurants = await restaurantRepository.getActiveOnlineRestaurants();
+    const restaurantIds = activeOnlineRestaurants.map(r => r._id);
+    if (restaurantIds.length === 0) return [];
+    return await productRepository.findByRestaurantIds(restaurantIds);
   },
 
   // Cập nhật product, chỉ cho phép owner của restaurant thao tác

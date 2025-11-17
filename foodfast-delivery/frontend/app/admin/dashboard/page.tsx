@@ -25,7 +25,10 @@ export default function AdminDashboard() {
     const token = localStorage.getItem(keys.tokenKey)
     const userStr = localStorage.getItem(keys.userKey)
 
+    console.debug("[AdminGuard] keys:", keys, "; hasToken:", !!token, "; hasUser:", !!userStr)
+
     if (!token || !userStr) {
+      console.warn("[AdminGuard] Missing token or user, redirecting to /login")
       router.push("/login")
       return; // Thoát sớm
     }
@@ -36,8 +39,10 @@ export default function AdminDashboard() {
 
     try {
       const user = JSON.parse(userStr);
+      console.debug("[AdminGuard] Parsed user role:", user?.role)
 
       if (user.role !== "ADMIN") {
+        console.warn("[AdminGuard] Role is not ADMIN, redirecting to /login")
         alert("Access Denied: You are not an admin.");
         logout("ADMIN"); // ⭐️ Sửa: Dùng hàm logout
         router.push("/login");

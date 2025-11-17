@@ -38,10 +38,11 @@ export default function AdminDroneApproval() {
 
   const loadRequests = async () => {
     try {
-      const response = await ApiClient.get<DroneRequest[]>('/api/admin/drones/requests');
+      const response = await ApiClient.get<DroneRequest[]>('/api/admin/drones/requests/pending');
+      console.debug('[AdminDrone] Pending requests response', response);
       setRequests(response.data || []);
-    } catch (error) {
-      console.error('Error loading requests:', error);
+    } catch (error: any) {
+      console.error('[AdminDrone] Error loading pending requests:', error);
     } finally {
       setLoading(false);
     }
@@ -49,31 +50,35 @@ export default function AdminDroneApproval() {
 
   const handleApprove = async (requestId: number) => {
     try {
-      await ApiClient.post(`/api/admin/drones/requests/${requestId}/approve`, {
-        adminNote: adminNotes[requestId] || '',
-      });
-      alert('✅ Request approved successfully!');
+      console.debug('[AdminDrone] Approving request', requestId);
+      // Backend expects PUT for approve
+      const resp = await ApiClient.put(`/api/admin/drones/requests/${requestId}/approve`, {});
+      console.debug('[AdminDrone] Approve response', resp);
+      alert('✅ Đã duyệt yêu cầu!');
       loadRequests();
     } catch (error: any) {
-      alert('❌ Failed to approve: ' + (error.response?.data?.message || error.message));
+      console.error('[AdminDrone] Approve error', error);
+      alert('❌ Duyệt thất bại: ' + (error.message || 'Unknown error'));
     }
   };
 
   const handleReject = async (requestId: number) => {
     const note = adminNotes[requestId];
     if (!note) {
-      alert('Please provide a reason for rejection');
+      alert('Vui lòng nhập lý do từ chối');
       return;
     }
 
     try {
-      await ApiClient.post(`/api/admin/drones/requests/${requestId}/reject`, {
-        adminNote: note,
-      });
-      alert('✅ Request rejected');
+      console.debug('[AdminDrone] Rejecting request', requestId, note);
+      // Backend expects PUT with ProcessRequestDto
+      const resp = await ApiClient.put(`/api/admin/drones/requests/${requestId}/reject`, { adminNote: note });
+      console.debug('[AdminDrone] Reject response', resp);
+      alert('✅ Đã từ chối yêu cầu');
       loadRequests();
     } catch (error: any) {
-      alert('❌ Failed to reject: ' + (error.response?.data?.message || error.message));
+      console.error('[AdminDrone] Reject error', error);
+      alert('❌ Từ chối thất bại: ' + (error.message || 'Unknown error'));
     }
   };
 

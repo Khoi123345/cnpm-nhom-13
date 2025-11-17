@@ -101,6 +101,25 @@ public class DroneServiceImpl implements DroneService {
     
     @Override
     @Transactional
+    public Drone markDroneReady(Long droneId, String ownerId) {
+        Drone drone = droneRepository.findById(droneId)
+                .orElseThrow(() -> new ResourceNotFoundException("Drone not found"));
+        
+        if (!drone.getOwnerId().equals(ownerId)) {
+            throw new BadRequestException("You don't own this drone");
+        }
+        
+        if (drone.getStatus() != DroneStatus.MAINTENANCE) {
+            throw new BadRequestException("Drone is not in maintenance mode");
+        }
+        
+        drone.setStatus(DroneStatus.IDLE);
+        drone.setCurrentOrderId(null);
+        return droneRepository.save(drone);
+    }
+    
+    @Override
+    @Transactional
     public DroneRegistrationRequest submitDeleteRequest(Long droneId, String ownerId, String reason) {
         Drone drone = droneRepository.findById(droneId)
                 .orElseThrow(() -> new ResourceNotFoundException("Drone not found"));

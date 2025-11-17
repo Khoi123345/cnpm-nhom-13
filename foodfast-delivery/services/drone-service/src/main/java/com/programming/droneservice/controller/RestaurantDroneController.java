@@ -88,6 +88,20 @@ public class RestaurantDroneController {
     }
     
     /**
+     * Kết thúc bảo trì và đưa drone về trạng thái IDLE
+     */
+    @PutMapping("/{droneId}/resume")
+    @PreAuthorize("hasRole('RESTAURANT')")
+    public ResponseEntity<ApiResponseDto<Drone>> markDroneReady(
+            @PathVariable Long droneId,
+            Authentication auth
+    ) {
+        String ownerId = auth.getName();
+        Drone drone = droneService.markDroneReady(droneId, ownerId);
+        return ResponseEntity.ok(ApiResponseDto.success("Drone ready for delivery", drone));
+    }
+    
+    /**
      * Gửi request đăng ký drone mới
      */
     @PostMapping("/registration-requests")

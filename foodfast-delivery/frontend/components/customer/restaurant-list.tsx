@@ -8,6 +8,7 @@ import { ApiClient } from "@/lib/api-client" // ⭐️ THÊM: Import ApiClient
 
 interface Restaurant {
   _id: string
+  owner_id: string
   name: string
   address: string
   phone: string
@@ -35,7 +36,7 @@ export function RestaurantList({ onSelectRestaurant }: RestaurantListProps) { //
         console.log('Restaurant API response:', response) // Debug log
         
         // Extract restaurants from response.data
-        const restaurantData = response.data?.restaurants || response.data || []
+        const restaurantData = (response as any).restaurants || response.data?.restaurants || response.data || []
         
         const onlineRestaurants = restaurantData.filter(
           (r: Restaurant) => r.isActive === true && r.isOnline === true,
@@ -85,7 +86,7 @@ export function RestaurantList({ onSelectRestaurant }: RestaurantListProps) { //
             </div>
 
             {/* ⭐️ SỬA: Thêm onClick */}
-            <Button className="w-full" onClick={() => onSelectRestaurant(restaurant._id)}>
+            <Button className="w-full" onClick={() => onSelectRestaurant(restaurant.owner_id)}>
               View Menu
             </Button>
           </div>

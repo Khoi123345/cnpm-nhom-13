@@ -18,6 +18,11 @@ class RestaurantRepository {
         const Restaurant = mongoose.models.Restaurant;
         return await Restaurant.find();
     }
+    
+    async getActiveOnlineRestaurants() {
+        const Restaurant = mongoose.models.Restaurant;
+        return await Restaurant.find({ isActive: true, isOnline: true });
+    }
 
     async findByOwnerId(ownerId) {
         return await Restaurant.findOne({ owner_id: ownerId });
@@ -31,6 +36,16 @@ class RestaurantRepository {
         );
     }
     async setOnlineRestaurant(ownerId, isOnline) {
+        const Restaurant = mongoose.models.Restaurant;
+        return await Restaurant.findOneAndUpdate(
+        { owner_id: ownerId },
+        { $set: { isOnline: isOnline } },
+        { new: true }
+        );
+    }
+    
+    // Alias used by Redis subscriber events
+    async setOnlineStatusByOwnerId(ownerId, isOnline) {
         const Restaurant = mongoose.models.Restaurant;
         return await Restaurant.findOneAndUpdate(
         { owner_id: ownerId },

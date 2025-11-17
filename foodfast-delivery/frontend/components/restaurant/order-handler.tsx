@@ -101,9 +101,15 @@ export function OrderHandler() {
 
   // Load available drones
   const loadAvailableDrones = async () => {
+    const restaurantId = getRestaurantId()
+    if (!restaurantId) {
+      console.warn("Missing restaurant id, cannot load drones")
+      setAvailableDrones([])
+      return
+    }
     try {
       const response = await ApiClient.get<any[]>(
-        `${API_ENDPOINTS.GET_AVAILABLE_DRONES}?minBattery=20`
+        `${API_ENDPOINTS.GET_AVAILABLE_DRONES}?restaurantId=${restaurantId}&minBattery=20`
       )
       if (response.success && response.data) {
         setAvailableDrones(response.data)
@@ -135,7 +141,7 @@ export function OrderHandler() {
     setAssigningDrone(true)
     try {
       // Call order service to ship with drone
-      const endpoint = `/orders/${selectedOrder.id}/ship`
+      const endpoint = API_ENDPOINTS.SHIP_ORDER.replace(":id", selectedOrder.id.toString())
       const response = await ApiClient.post(endpoint, { droneId: parseInt(selectedDroneId) })
       
       if (response.success) {

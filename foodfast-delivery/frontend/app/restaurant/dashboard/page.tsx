@@ -23,8 +23,10 @@ export default function RestaurantDashboard() {
     const keys = getStorageKeys("RESTAURANT")
     const token = localStorage.getItem(keys.tokenKey)
     const userStr = localStorage.getItem(keys.userKey)
+    console.debug("[RestGuard] keys:", keys, "; hasToken:", !!token, "; hasUser:", !!userStr)
 
     if (!token || !userStr) {
+      console.warn("[RestGuard] Missing token or user, redirecting to /login")
       router.push("/login")
       return
     }
@@ -37,6 +39,7 @@ export default function RestaurantDashboard() {
 
     try {
       const user = JSON.parse(userStr)
+      console.debug("[RestGuard] Parsed user role:", user?.role)
 
       if (user.role !== "RESTAURANT") {
         alert("Access Denied: You are not a restaurant owner.")
@@ -54,7 +57,8 @@ export default function RestaurantDashboard() {
             `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
             {
               isOnline: true,
-            }
+            },
+            "RESTAURANT"
           )
           console.log("Restaurant set to ONLINE")
         } catch (error) {
@@ -84,7 +88,8 @@ export default function RestaurantDashboard() {
                 `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`,
                 {
                   isOnline: false,
-                }
+                },
+                "RESTAURANT"
               )
               console.log("Restaurant set to OFFLINE")
             } catch (error) {
@@ -105,7 +110,8 @@ export default function RestaurantDashboard() {
         `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
         {
           isOnline: false,
-        }
+        },
+        "RESTAURANT"
       )
     } catch (error) {
       console.error("Failed to set restaurant offline:", error)

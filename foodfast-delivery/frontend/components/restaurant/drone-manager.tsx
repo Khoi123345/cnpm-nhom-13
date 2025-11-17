@@ -81,43 +81,44 @@ export default function RestaurantDroneManager() {
 
   const loadRequests = async () => {
     try {
-      // Cần lấy restaurantId từ user context hoặc từ drone đầu tiên
-      if (drones.length === 0) return;
-      const restaurantId = drones[0]?.restaurantId || 'default-restaurant-id';
-      
+      // Lấy restaurantId (ownerId) trực tiếp từ localStorage thay vì chờ có drone
+      const rawUser = typeof window !== 'undefined' ? localStorage.getItem('restaurant_user') : null;
+      const restaurantId = rawUser ? JSON.parse(rawUser).id : null;
+      if (!restaurantId) {
+        console.warn('[Drone] Không tìm thấy restaurant_user trong localStorage để tải requests');
+        return;
+      }
       const response = await ApiClient.get<RegistrationRequest[]>(
         `/api/drones/registration-requests/my-restaurant?restaurantId=${restaurantId}`
       );
+      console.debug('[Drone] Loaded registration requests', response);
       setRequests(response.data || []);
     } catch (error) {
-      console.error('Error loading requests:', error);
+      console.error('[Drone] Error loading requests:', error);
     }
   };
 
   const handleAddDrone = async () => {
     try {
-      // Cần lấy restaurantId và restaurantName từ user context
-      const restaurantId = drones[0]?.restaurantId || 'default-restaurant-id';
-      const restaurantName = 'My Restaurant'; // Nên lấy từ user profile
-      
-      await ApiClient.post(
-        `/api/drones/registration-requests?restaurantId=${restaurantId}&restaurantName=${restaurantName}`,
-        {
-          droneName: newDrone.name,
-          droneModel: newDrone.model || 'DJI-M300',
-          homeLat: newDrone.homeLat,
-          homeLng: newDrone.homeLng,
-          maxPayloadKg: newDrone.maxPayloadKg,
-          maxSpeedKmh: newDrone.maxSpeedKmh,
-        }
-      );
-      
-      alert('✅ Drone registration request submitted! Waiting for admin approval.');
+      // ownerId = restaurantId được backend lấy từ JWT, không cần query params
+      const payload = {
+        droneName: newDrone.name,
+        droneModel: newDrone.model || 'DJI-M300',
+        homeLat: newDrone.homeLat,
+        homeLng: newDrone.homeLng,
+        maxPayloadKg: newDrone.maxPayloadKg,
+        maxSpeedKmh: newDrone.maxSpeedKmh,
+      };
+      console.debug('[Drone] Submitting registration payload', payload);
+      const resp = await ApiClient.post(`/api/drones/registration-requests`, payload);
+      console.debug('[Drone] Registration response', resp);
+      alert('✅ Đã gửi yêu cầu đăng ký drone! Chờ admin duyệt.');
       setShowAddDialog(false);
       setNewDrone({ name: '', model: 'DJI-M300', homeLat: 10.762622, homeLng: 106.660172, maxPayloadKg: 5.0, maxSpeedKmh: 30.0 });
       loadRequests();
     } catch (error: any) {
-      alert('❌ Failed to submit request: ' + (error.response?.data?.message || error.message));
+      console.error('[Drone] Registration error', error);
+      alert('❌ Gửi yêu cầu thất bại: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -130,24 +131,37 @@ export default function RestaurantDroneManager() {
       alert('❌ Failed: ' + (error.response?.data?.message || error.message));
     }
   };
+  
+  const handleResumeDrone = async (droneId: number) => {
+    try {
+      await ApiClient.put(`/api/drones/${droneId}/resume`, {});
+      alert('✅ Drone ready for delivery');
+      loadDrones();
+    } catch (error: any) {
+      alert('❌ Failed: ' + (error.response?.data?.message || error.message));
+    }
+  };
 
   const handleRequestDelete = async () => {
     if (!selectedDroneForDelete || !deleteReason.trim()) {
-      alert('Please provide a reason for deletion');
+      alert('Vui lòng nhập lý do xóa');
       return;
     }
 
     try {
-      await ApiClient.delete(
+      console.debug('[Drone] Submit delete request for', selectedDroneForDelete.id, deleteReason);
+      const resp = await ApiClient.delete(
         `/api/drones/${selectedDroneForDelete.id}/request-delete?reason=${encodeURIComponent(deleteReason)}`
       );
-      alert('✅ Delete request submitted! Waiting for admin approval.');
+      console.debug('[Drone] Delete request response', resp);
+      alert('✅ Đã gửi yêu cầu xóa! Chờ admin duyệt.');
       setShowDeleteDialog(false);
       setSelectedDroneForDelete(null);
       setDeleteReason('');
       loadRequests();
     } catch (error: any) {
-      alert('❌ Failed to submit delete request: ' + (error.response?.data?.message || error.message));
+      console.error('[Drone] Delete request error', error);
+      alert('❌ Gửi yêu cầu xóa thất bại: ' + (error.message || 'Unknown error'));
     }
   };
 
@@ -329,14 +343,23 @@ export default function RestaurantDroneManager() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={drone.status === 'MAINTENANCE'}
-                      onClick={() => handleSetMaintenance(drone.id)}
-                    >
-                      🔧 Maintenance
-                    </Button>
+                    {drone.status === 'MAINTENANCE' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleResumeDrone(drone.id)}
+                      >
+                        ✅ Resume
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSetMaintenance(drone.id)}
+                      >
+                        🔧 Maintenance
+                      </Button>
+                    )}
                     <Button
                       variant="destructive"
                       size="sm"

@@ -35,6 +35,11 @@ export default function MyOrders() {
   const itemsPerPage = 10
   const { getStorageKeys, logout } = useAuth() 
 
+  // Ensure hooks are not conditionally skipped
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchQuery, startDate, endDate]);
+
   const getUserId = () => {
     const keys = getStorageKeys("CUSTOMER")
     const userStr = localStorage.getItem(keys.userKey)
@@ -159,10 +164,7 @@ export default function MyOrders() {
     currentPage * itemsPerPage
   );
   
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [statusFilter, searchQuery, startDate, endDate]);
+  // (moved up) Reset to page 1 when filters change
 
   return (
     <div className="min-h-screen bg-background">

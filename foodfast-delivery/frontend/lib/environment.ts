@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   GET_USER_ORDERS: "/api/orders/get/byUser",
   GET_RESTAURANT_ORDERS: "/api/orders/get/byRestaurant",
   UPDATE_ORDER_STATUS: "/api/orders/:id/status",
+  SHIP_ORDER: "/api/orders/:id/ship",
 
   // Users (from user-service, via API Gateway)
   GET_USERS: "/api/users",
@@ -41,12 +42,14 @@ export const API_ENDPOINTS = {
   GET_ALL_PAYMENTS_ADMIN: "/api/payments/admin/all",
 
   // Drones (from drone-service, via API Gateway)
-  GET_MY_DRONES: "/api/v1/drones/my-restaurant",
-  GET_AVAILABLE_DRONES: "/api/v1/drones/my-restaurant/available",
-  SUBMIT_DRONE_REQUEST: "/api/v1/drones/registration-requests",
-  GET_MY_DRONE_REQUESTS: "/api/v1/drones/my-requests",
-  GET_PENDING_DRONE_REQUESTS: "/api/v1/admin/drones/requests/pending",
-  APPROVE_DRONE_REQUEST: "/api/v1/admin/drones/requests/:id/approve",
-  REJECT_DRONE_REQUEST: "/api/v1/admin/drones/requests/:id/reject",
-  GET_ALL_DRONES: "/api/v1/admin/drones/all",
+  // NOTE: Gateway locations are /api/drones and /api/admin/drones which rewrite to /api/v1/... internally.
+  // Frontend must therefore call WITHOUT /api/v1 prefix.
+  GET_MY_DRONES: "/api/drones/my-restaurant",
+  GET_AVAILABLE_DRONES: "/api/drones/my-restaurant/available",
+  SUBMIT_DRONE_REQUEST: "/api/drones/registration-requests",
+  GET_MY_DRONE_REQUESTS: "/api/drones/my-requests",
+  GET_PENDING_DRONE_REQUESTS: "/api/admin/drones/requests/pending",
+  APPROVE_DRONE_REQUEST: "/api/admin/drones/requests/:id/approve",
+  REJECT_DRONE_REQUEST: "/api/admin/drones/requests/:id/reject",
+  GET_ALL_DRONES: "/api/admin/drones/all",
 }

@@ -3,9 +3,7 @@ package com.programming.droneservice.service;
 import com.programming.droneservice.dto.AssignOrderRequestDto;
 import com.programming.droneservice.dto.DroneGpsUpdateDto;
 import com.programming.droneservice.dto.DroneRegistrationRequestDto;
-import com.programming.droneservice.dto.ProcessRequestDto;
 import com.programming.droneservice.model.*;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -37,6 +35,11 @@ public interface DroneService {
      * Đánh dấu drone đang bảo trì
      */
     Drone markDroneAsMaintenance(Long droneId, String ownerId);
+    
+    /**
+     * Kết thúc bảo trì và cho drone hoạt động trở lại (về trạng thái IDLE)
+     */
+    Drone markDroneReady(Long droneId, String ownerId);
     
     /**
      * Gửi request xóa drone
