@@ -32,9 +32,9 @@ export function UserManagement() {
     setLoading(true)
     try {
       // Gọi qua API Gateway
-      const response = await ApiClient.get("/api/users")
+      const response = await ApiClient.get<AdminUser[]>("/api/users")
       if (response.success) {
-        setUsers(response.data)
+        setUsers(response.data as AdminUser[])
       } else {
         setError(response.message)
       }
