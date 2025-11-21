@@ -1,55 +1,51 @@
 // foodfast-delivery/frontend/lib/environment.ts
 
-// ⭐️ TOÀN BỘ API_CONFIG ĐÃ BỊ XOÁ
-
 export const API_ENDPOINTS = {
-  // Auth (from user-service, via API Gateway)
-  AUTH_REGISTER: "/api/auth/register",
-  AUTH_LOGIN: "/api/auth/login",
-  AUTH_REGISTER_RESTAURANT: "/api/auth/register-restaurant",
-  AUTH_LOGOUT: "/api/auth/logout",
+  // Auth (from user-service)
+  AUTH_REGISTER: "/api/v1/auth/register",
+  AUTH_LOGIN: "/api/v1/auth/login",
+  AUTH_REGISTER_RESTAURANT: "/api/v1/auth/register-restaurant",
+  AUTH_LOGOUT: "/api/v1/auth/logout",
 
-  // Products (from product-service, via API Gateway)
-  GET_PRODUCTS: "/api/products",
-  GET_PRODUCT_DETAIL: "/api/products/:id",
-  CREATE_PRODUCT: "/api/products",
-  UPDATE_PRODUCT: "/api/products/:id",
-  DELETE_PRODUCT: "/api/products/:id",
-  GET_MY_PRODUCTS: "/api/products/my-products",
+  // Products (from product-service) -> THÊM /v1
+  GET_PRODUCTS: "/api/v1/products",
+  GET_PRODUCT_DETAIL: "/api/v1/products/:id",
+  CREATE_PRODUCT: "/api/v1/products",
+  UPDATE_PRODUCT: "/api/v1/products/:id",
+  DELETE_PRODUCT: "/api/v1/products/:id",
+  GET_MY_PRODUCTS: "/api/v1/products/my-products",
 
-  // Restaurants (from product-service, via API Gateway)
-  GET_RESTAURANTS: "/api/restaurants",
-  GET_RESTAURANT: "/api/restaurants/:id",
-  CREATE_RESTAURANT: "/api/restaurants",
-  GET_MY_RESTAURANT: "/api/restaurants/my-restaurant",
+  // Restaurants (from product-service) -> THÊM /v1
+  GET_RESTAURANTS: "/api/v1/restaurants",
+  GET_RESTAURANT: "/api/v1/restaurants/:id",
+  CREATE_RESTAURANT: "/api/v1/restaurants",
+  GET_MY_RESTAURANT: "/api/v1/restaurants/my-restaurant",
 
-  // Orders (from order-service, via API Gateway)
-  CREATE_ORDER: "/api/orders/create",
-  GET_ALL_ORDERS: "/api/orders/get/all",
-  GET_USER_ORDERS: "/api/orders/get/byUser",
-  GET_RESTAURANT_ORDERS: "/api/orders/get/byRestaurant",
-  UPDATE_ORDER_STATUS: "/api/orders/:id/status",
-  SHIP_ORDER: "/api/orders/:id/ship",
+  // Orders (from order-service) -> THÊM /v1
+  CREATE_ORDER: "/api/v1/orders/create",
+  GET_ALL_ORDERS: "/api/v1/orders/get/all",
+  GET_USER_ORDERS: "/api/v1/orders/get/byUser",
+  GET_RESTAURANT_ORDERS: "/api/v1/orders/get/byRestaurant",
+  UPDATE_ORDER_STATUS: "/api/v1/orders/:id/status",
+  SHIP_ORDER: "/api/v1/orders/:id/ship",
 
-  // Users (from user-service, via API Gateway)
-  GET_USERS: "/api/users",
-  GET_USER: "/api/users/:id",
+  // Users (from user-service) -> THÊM /v1
+  GET_USERS: "/api/v1/users",
+  GET_USER: "/api/v1/users/:id",
 
-  // Payments (from payment-service, via API Gateway)
-  CREATE_VNPAY_PAYMENT: "/api/payments/vnpay/create",
-  GET_MY_PAYMENTS: "/api/payments/me",
-  GET_PAYMENT: "/api/payments/:id",
-  GET_ALL_PAYMENTS_ADMIN: "/api/payments/admin/all",
+  // Payments (from payment-service) -> THÊM /v1
+  CREATE_VNPAY_PAYMENT: "/api/v1/payments/vnpay/create",
+  GET_MY_PAYMENTS: "/api/v1/payments/me",
+  GET_PAYMENT: "/api/v1/payments/:id",
+  GET_ALL_PAYMENTS_ADMIN: "/api/v1/payments/admin/all",
 
-  // Drones (from drone-service, via API Gateway)
-  // NOTE: Gateway locations are /api/drones and /api/admin/drones which rewrite to /api/v1/... internally.
-  // Frontend must therefore call WITHOUT /api/v1 prefix.
-  GET_MY_DRONES: "/api/drones/my-restaurant",
-  GET_AVAILABLE_DRONES: "/api/drones/my-restaurant/available",
-  SUBMIT_DRONE_REQUEST: "/api/drones/registration-requests",
-  GET_MY_DRONE_REQUESTS: "/api/drones/my-requests",
-  GET_PENDING_DRONE_REQUESTS: "/api/admin/drones/requests/pending",
-  APPROVE_DRONE_REQUEST: "/api/admin/drones/requests/:id/approve",
-  REJECT_DRONE_REQUEST: "/api/admin/drones/requests/:id/reject",
-  GET_ALL_DRONES: "/api/admin/drones/all",
+  // Drones (from drone-service) -> THÊM /v1
+  GET_MY_DRONES: "/api/v1/drones/my-restaurant",
+  GET_AVAILABLE_DRONES: "/api/v1/drones/my-restaurant/available",
+  SUBMIT_DRONE_REQUEST: "/api/v1/drones/registration-requests",
+  GET_MY_DRONE_REQUESTS: "/api/v1/drones/my-requests",
+  GET_PENDING_DRONE_REQUESTS: "/api/v1/admin/drones/requests/pending",
+  APPROVE_DRONE_REQUEST: "/api/v1/admin/drones/requests/:id/approve",
+  REJECT_DRONE_REQUEST: "/api/v1/admin/drones/requests/:id/reject",
+  GET_ALL_DRONES: "/api/v1/admin/drones/all",
 }
