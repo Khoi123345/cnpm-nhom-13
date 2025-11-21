@@ -55,10 +55,12 @@ services:
       - DB_NAME=foodfastdb
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - ALLOWED_ORIGINS=http://localhost:3000,http://52.195.195.198:3000,http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000
     volumes:
       # Giữ lại volume mapping code (cho hot-reload nếu cần)
       - ./services/user-service:/usr/src/app
-      # ⚠️ ĐÃ XOÁ: Volume anonymous cho node_modules (đã gây lỗi trước đó)
+      # ⚠️ KHÔI PHỤC: Volume anonymous cho node_modules (bắt buộc để không bị ghi đè)
+      - /usr/src/app/node_modules
     depends_on:
       - db
       - redis
@@ -79,12 +81,14 @@ services:
       - MONGODB_URI=mongodb://root-user:root-pass@mongo-db:27017/foodfast_product?authSource=admin
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - ALLOWED_ORIGINS=http://localhost:3000,http://52.195.195.198:3000,http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000
     depends_on:
       - mongo-db
       - redis
     volumes:
       - ./services/product-service:/usr/src/app
-      # ⚠️ ĐÃ XOÁ: Volume anonymous cho node_modules
+      # ⚠️ KHÔI PHỤC: Volume anonymous cho node_modules (bắt buộc để không bị ghi đè)
+      - /usr/src/app/node_modules
     command: npm run dev
     networks:
       - backend
