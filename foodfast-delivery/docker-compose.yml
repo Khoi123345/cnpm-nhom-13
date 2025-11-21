@@ -1,21 +1,21 @@
 version: "3.8"
 
 services:
-  # --- API GATEWAY (Nginx) --- ⭐️ THÊM MỚI
+  # --- API GATEWAY (Nginx) ---
   api-gateway:
     image: nginx:latest
     container_name: foodfast-api-gateway
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     ports:
-      - "8080:80" # Cổng DUY NHẤT mà frontend sẽ gọi
+      - "8080:80"
     volumes:
-      # Map file config Nginx chúng ta vừa tạo ở Bước 1
       - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - user-service
       - product-service
       - order-service
       - payment-service
+      - drone-service # Đảm bảo service drone cũng được thêm
     networks:
       - backend
 
@@ -24,14 +24,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    restart: always # Đã chỉnh sửa
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # ⭐️ SỬA: URL không có /api vì endpoint đã chứa /api
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      # ⭐️ ĐÃ CẬP NHẬT: Dùng DNS công cộng mới của EC2 để gọi Gateway
+      - NEXT_PUBLIC_API_URL=http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:8080
     depends_on:
-      - api-gateway # ⭐️ SỬA: Frontend giờ phụ thuộc vào gateway
+      - api-gateway
     networks:
       - backend
 
@@ -41,10 +42,7 @@ services:
       context: ./services/user-service
       dockerfile: Dockerfile
     container_name: foodfast-user-service
-    restart: unless-stopped
-    # ⭐️ XOÁ: Không cần public cổng 3001 nữa
-    # ports:
-    #   - "3001:3000"
+    restart: always # Đã chỉnh sửa
     environment:
       - NODE_ENV=development
       - PORT=3000
@@ -57,12 +55,13 @@ services:
       - DB_NAME=foodfastdb
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+    volumes:
+      # Giữ lại volume mapping code (cho hot-reload nếu cần)
+      - ./services/user-service:/usr/src/app
+      # ⚠️ ĐÃ XOÁ: Volume anonymous cho node_modules (đã gây lỗi trước đó)
     depends_on:
       - db
       - redis
-    volumes:
-      - ./services/user-service:/usr/src/app
-      - /usr/src/app/node_modules
     networks:
       - backend
 
@@ -72,10 +71,7 @@ services:
       context: ./services/product-service
       dockerfile: Dockerfile
     container_name: foodfast-product-service
-    restart: unless-stopped
-    # ⭐️ XOÁ: Không cần public cổng 3002 nữa
-    # ports:
-    #   - "3002:3002"
+    restart: always # Đã chỉnh sửa
     environment:
       - NODE_ENV=development
       - PORT=3002
@@ -88,21 +84,18 @@ services:
       - redis
     volumes:
       - ./services/product-service:/usr/src/app
-      - /usr/src/app/node_modules
+      # ⚠️ ĐÃ XOÁ: Volume anonymous cho node_modules
     command: npm run dev
     networks:
       - backend
-      
+
   # --- ORDER SERVICE (Spring Boot) ---
   order-service:
     build:
       context: ./services/order-service
       dockerfile: Dockerfile
     container_name: foodfast-order-service
-    restart: unless-stopped
-    # ⭐️ XOÁ: Không cần public cổng 8082 nữa
-    # ports:
-    #   - "8082:8082"
+    restart: always # Đã chỉnh sửa
     environment:
       - SERVER_PORT=8082
       - SPRING_PROFILES_ACTIVE=docker
@@ -111,7 +104,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_CLOUD_DISCOVERY_ENABLED=false
-      
     depends_on:
       - db-order
       - redis
@@ -124,7 +116,7 @@ services:
       context: ./services/payment-service
       dockerfile: Dockerfile
     container_name: foodfast-payment-service
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       - SERVER_PORT=8085
       - SPRING_PROFILES_ACTIVE=docker
@@ -133,7 +125,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-      - VNPAY_RETURN_URL=http://localhost:3000/customer/payment-return
+      # ⭐️ ĐÃ CHỈNH SỬA: Thay localhost bằng IP/DNS công cộng của EC2
+      - VNPAY_RETURN_URL=http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000/customer/payment-return
       - VNPAY_TMN_CODE=0LJWVZP7
       - VNPAY_HASH_SECRET=5SDVJZTMOJMFFTJ4LSM08Q34TTM65J4M
       - VNPAY_API_URL=https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
@@ -149,7 +142,7 @@ services:
       context: ./services/drone-service
       dockerfile: Dockerfile
     container_name: foodfast-drone-service
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       - SERVER_PORT=8086
       - SPRING_PROFILES_ACTIVE=docker
@@ -169,11 +162,11 @@ services:
     networks:
       - backend
 
-  # --- (Các service database và adminer giữ nguyên) ---
+  # --- DATABASE SERVICES (Giữ nguyên cấu hình) ---
   db:
     image: postgres:16
     container_name: foodfast-postgres-user
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       POSTGRES_USER: foodfast
       POSTGRES_PASSWORD: 123456
@@ -182,11 +175,11 @@ services:
       - pgdata-user:/var/lib/postgresql/data
     networks:
       - backend
-  
+
   db-order:
     image: postgres:16
     container_name: foodfast-postgres-order
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
@@ -199,7 +192,7 @@ services:
   db-payment:
     image: postgres:16
     container_name: foodfast-postgres-payment
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
@@ -212,7 +205,7 @@ services:
   db-drone:
     image: postgres:16
     container_name: foodfast-postgres-drone
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
@@ -225,7 +218,7 @@ services:
   mongo-db:
     image: mongo:7
     container_name: foodfast-mongodata
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     environment:
       MONGO_INITDB_ROOT_USERNAME: root-user
       MONGO_INITDB_ROOT_PASSWORD: root-pass
@@ -238,7 +231,7 @@ services:
   redis:
     image: redis:7
     container_name: foodfast-redis
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     volumes:
       - redisdata:/data
     networks:
@@ -247,9 +240,9 @@ services:
   adminer:
     image: adminer:latest
     container_name: foodfast-adminer
-    restart: unless-stopped
+    restart: always # Đã chỉnh sửa
     ports:
-      - "8081:8080" # ⭐️ SỬA: Đổi cổng adminer thành 8081 để tránh xung đột với gateway 8080
+      - "8081:8080"
     networks:
       - backend
 

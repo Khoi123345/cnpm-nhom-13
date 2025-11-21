@@ -57,8 +57,7 @@ export default function RestaurantDashboard() {
             `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
             {
               isOnline: true,
-            },
-            "RESTAURANT"
+            }
           )
           console.log("Restaurant set to ONLINE")
         } catch (error) {
@@ -88,8 +87,7 @@ export default function RestaurantDashboard() {
                 `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`,
                 {
                   isOnline: false,
-                },
-                "RESTAURANT"
+                }
               )
               console.log("Restaurant set to OFFLINE")
             } catch (error) {
@@ -110,8 +108,7 @@ export default function RestaurantDashboard() {
         `${API_ENDPOINTS.GET_MY_RESTAURANT}/status`, 
         {
           isOnline: false,
-        },
-        "RESTAURANT"
+        }
       )
     } catch (error) {
       console.error("Failed to set restaurant offline:", error)

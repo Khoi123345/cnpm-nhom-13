@@ -53,12 +53,15 @@ export default function OrderDetailPage() {
   const loadDroneInfo = async () => {
     try {
       // Get delivery log for this order
-      const response = await ApiClient.get<any>(`/drones/internal/delivery/${orderId}`);
-      if (response.data) {
+      const response = await ApiClient.get<any>(`/api/v1/drones/internal/delivery-logs/order/${orderId}`);
+      console.log('Drone info response:', response);
+      if (response.success && response.data) {
         setDroneInfo(response.data);
+      } else {
+        console.warn('No drone assigned to this order yet');
       }
-    } catch (error) {
-      console.error('Error loading drone info:', error);
+    } catch (error: any) {
+      console.error('Error loading drone info:', error.message);
     }
   };
 
