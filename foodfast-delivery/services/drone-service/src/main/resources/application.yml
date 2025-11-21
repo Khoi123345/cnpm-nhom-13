@@ -32,7 +32,7 @@ jwt:
 
 # Delivery Configuration (Tầm giao hàng tối đa)
 delivery:
-  max-distance-km: 10.0
+  max-distance-km: 5.0  # Giới hạn 5km phạm vi giao hàng
   battery-consumption-per-km: 5.0  # Mỗi km tiêu tốn 5% pin
   speed-kmh: 30.0  # Tốc độ drone 30 km/h
 

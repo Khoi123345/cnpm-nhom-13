@@ -479,8 +479,7 @@ public class OrderServiceImpl implements OrderService {
         }
         
         try {
-            // ⭐️ CẬP NHẬT: Gọi drone-service để assign order
-            // Tạo request body (Map thay vì custom class)
+            // ⭐️ Gọi drone-service để assign order và tạo delivery log
             Map<String, Object> assignRequest = Map.of(
                 "droneId", droneId,
                 "orderId", orderId,
@@ -489,9 +488,14 @@ public class OrderServiceImpl implements OrderService {
                 "destinationAddress", order.getAddressShip()
             );
             
-            // Gọi Feign Client (cần tạo method assignOrder)
-            // ResponseEntity<ApiResponseDto<Void>> droneResponse = 
-            //         droneService.assignOrder(assignRequest);
+            log.info("📡 Calling drone-service to assign order {} to drone {}", orderId, droneId);
+            ResponseEntity<ApiResponseDto<Object>> droneResponse = droneService.assignOrder(assignRequest);
+            
+            if (droneResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("✅ Drone service confirmed assignment");
+            } else {
+                throw new ServiceLogicException("Drone service failed to assign order");
+            }
             
             // ⭐️ QUAN TRỌNG: Lưu droneId vào order
             order.setDroneId(droneId);

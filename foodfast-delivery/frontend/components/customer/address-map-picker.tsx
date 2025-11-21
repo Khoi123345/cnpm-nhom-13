@@ -19,9 +19,34 @@ interface AddressMapPickerProps {
   onLocationSelect: (lat: number, lng: number, address: string) => void;
   initialLat?: number;
   initialLng?: number;
+  maxRangeKm?: number; // Giới hạn bán kính giao hàng
+  restaurantLat?: number; // Tọa độ nhà hàng để tính khoảng cách
+  restaurantLng?: number;
 }
 
-export default function AddressMapPicker({ onLocationSelect, initialLat = 10.762622, initialLng = 106.660172 }: AddressMapPickerProps) {
+// Hàm tính khoảng cách Haversine
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Bán kính Trái đất (km)
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLng = (lng2 - lng1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+export default function AddressMapPicker({ 
+  onLocationSelect, 
+  initialLat = 10.762622, 
+  initialLng = 106.660172,
+  maxRangeKm = 5.0,
+  restaurantLat = 10.762622,
+  restaurantLng = 106.660172
+}: AddressMapPickerProps) {
   const [mounted, setMounted] = useState(false);
   const [address, setAddress] = useState('');
   const [position, setPosition] = useState<[number, number] | null>(null);
@@ -58,8 +83,22 @@ export default function AddressMapPicker({ onLocationSelect, initialLat = 10.762
       const lng = parseFloat(data[0].lon);
       const fullAddress = data[0].display_name;
 
+      // Kiểm tra khoảng cách
+      const distance = calculateDistance(restaurantLat, restaurantLng, lat, lng);
+      
+      if (distance > maxRangeKm) {
+        setError(
+          `⚠️ Địa chỉ này nằm ngoài phạm vi giao hàng!\n` +
+          `Khoảng cách: ${distance.toFixed(2)} km (Giới hạn: ${maxRangeKm} km)\n` +
+          `Vui lòng chọn địa chỉ gần hơn.`
+        );
+        setLoading(false);
+        return;
+      }
+
       setPosition([lat, lng]);
       onLocationSelect(lat, lng, fullAddress);
+      setError(`✅ Địa chỉ hợp lệ! Khoảng cách: ${distance.toFixed(2)} km`);
       setLoading(false);
     } catch (error) {
       console.error('Geocoding error:', error);
@@ -104,8 +143,16 @@ export default function AddressMapPicker({ onLocationSelect, initialLat = 10.762
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-700">⚠️ {error}</p>
+        <div className={`p-3 border rounded-lg ${
+          error.startsWith('✅') 
+            ? 'bg-green-50 border-green-200' 
+            : 'bg-red-50 border-red-200'
+        }`}>
+          <p className={`text-sm whitespace-pre-line ${
+            error.startsWith('✅') 
+              ? 'text-green-700' 
+              : 'text-red-700'
+          }`}>{error}</p>
         </div>
       )}
 

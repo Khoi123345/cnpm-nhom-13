@@ -1,5 +1,6 @@
 package com.programming.droneservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,7 @@ public class DeliveryLog {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drone_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Drone drone;
     
     /**
