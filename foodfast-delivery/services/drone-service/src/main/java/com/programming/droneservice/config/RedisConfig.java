@@ -1,30 +1,26 @@
 package com.programming.droneservice.config;
 
+import com.programming.droneservice.listener.DroneEventListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 @Configuration
 public class RedisConfig {
     
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+    public RedisMessageListenerContainer container(
+            RedisConnectionFactory connectionFactory,
+            DroneEventListener droneEventListener
+    ) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
         
-        // Use String serializer for keys
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setHashKeySerializer(new StringRedisSerializer());
+        // ⭐️ Lắng nghe channel "drone.events"
+        container.addMessageListener(droneEventListener, new PatternTopic("drone.events"));
         
-        // Use JSON serializer for values
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
-        template.setValueSerializer(serializer);
-        template.setHashValueSerializer(serializer);
-        
-        template.afterPropertiesSet();
-        return template;
+        return container;
     }
 }

@@ -187,6 +187,13 @@ public class OrderController {
         Long droneId = Long.valueOf(request.get("droneId").toString());
         return orderService.shipOrderWithDrone(orderId, droneId);
     }
+
+    @PostMapping("/{orderId}/confirm-delivery")
+    public ResponseEntity<ApiResponseDto<?>> confirmDelivery(
+            @PathVariable Long orderId
+    ) throws ResourceNotFoundException, ServiceLogicException {
+        return orderService.confirmDelivery(orderId);
+    }
 }
 
 

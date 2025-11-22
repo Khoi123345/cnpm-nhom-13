@@ -47,7 +47,12 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        // ⭐️ PRODUCTION: Add EC2 public IP for production deployment
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost:3000",
+            "http://52.195.195.198:3000",
+            "http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         
         configuration.setAllowedHeaders(List.of("*")); 

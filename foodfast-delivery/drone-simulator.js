@@ -11,12 +11,15 @@ class DroneSimulator {
   constructor(droneId, orderId, restaurantLat, restaurantLng, destLat, destLng) {
     this.droneId = droneId;
     this.orderId = orderId;
+    this.restaurantLat = restaurantLat;
+    this.restaurantLng = restaurantLng;
     this.currentLat = restaurantLat;
     this.currentLng = restaurantLng;
     this.destLat = destLat;
     this.destLng = destLng;
     this.batteryPercent = 100;
     this.speed = 30; // km/h
+    this.maxRangeKm = 5.0; // Giới hạn phạm vi 5km
     this.client = null;
     this.intervalId = null;
   }
@@ -138,6 +141,22 @@ class DroneSimulator {
     console.log(`   Order ID: ${this.orderId}`);
     console.log(`   From: ${this.currentLat}, ${this.currentLng}`);
     console.log(`   To: ${this.destLat}, ${this.destLng}`);
+
+    // Kiểm tra khoảng cách từ nhà hàng đến đích
+    const totalDistance = this.calculateDistance(
+      this.restaurantLat,
+      this.restaurantLng,
+      this.destLat,
+      this.destLng
+    );
+    
+    if (totalDistance > this.maxRangeKm) {
+      console.error(`❌ Destination is ${totalDistance.toFixed(2)} km away, exceeds max range of ${this.maxRangeKm} km`);
+      console.error('🚫 Cannot start delivery - distance too far!');
+      process.exit(1);
+    }
+    
+    console.log(`✅ Distance check passed: ${totalDistance.toFixed(2)} km (within ${this.maxRangeKm} km limit)`);
 
     const socket = new SockJS('http://localhost:8080/ws');
     this.client = new Client({

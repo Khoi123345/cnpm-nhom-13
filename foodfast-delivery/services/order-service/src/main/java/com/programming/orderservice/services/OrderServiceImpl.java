@@ -479,8 +479,7 @@ public class OrderServiceImpl implements OrderService {
         }
         
         try {
-            // ⭐️ CẬP NHẬT: Gọi drone-service để assign order
-            // Tạo request body (Map thay vì custom class)
+            // ⭐️ Gọi drone-service để assign order và tạo delivery log
             Map<String, Object> assignRequest = Map.of(
                 "droneId", droneId,
                 "orderId", orderId,
@@ -489,9 +488,14 @@ public class OrderServiceImpl implements OrderService {
                 "destinationAddress", order.getAddressShip()
             );
             
-            // Gọi Feign Client (cần tạo method assignOrder)
-            // ResponseEntity<ApiResponseDto<Void>> droneResponse = 
-            //         droneService.assignOrder(assignRequest);
+            log.info("📡 Calling drone-service to assign order {} to drone {}", orderId, droneId);
+            ResponseEntity<ApiResponseDto<Object>> droneResponse = droneService.assignOrder(assignRequest);
+            
+            if (droneResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("✅ Drone service confirmed assignment");
+            } else {
+                throw new ServiceLogicException("Drone service failed to assign order");
+            }
             
             // ⭐️ QUAN TRỌNG: Lưu droneId vào order
             order.setDroneId(droneId);
@@ -509,6 +513,46 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("Error shipping order {}: {}", orderId, e.getMessage());
             throw new ServiceLogicException("Failed to ship order: " + e.getMessage());
+        }
+    }
+
+    // ⭐️ Xác nhận giao hàng thành công
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> confirmDelivery(Long orderId)
+            throws ServiceLogicException, ResourceNotFoundException {
+        try {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+            // Kiểm tra trạng thái đơn hàng
+            if (order.getOrderStatus() != EOrderStatus.SHIPPED) {
+                throw new ServiceLogicException("Order must be in SHIPPED status to confirm delivery");
+            }
+
+            // Cập nhật trạng thái thành COMPLETED
+            order.setOrderStatus(EOrderStatus.COMPLETED);
+            order.setDeliveredAt(LocalDateTime.now());
+            orderRepository.save(order);
+
+            // Gửi event qua Redis để cập nhật drone status
+            Map<String, Object> eventData = Map.of(
+                "orderId", orderId,
+                "droneId", order.getDroneId(),
+                "event", "DELIVERY_CONFIRMED"
+            );
+            redisTemplate.convertAndSend("drone.events", objectMapper.writeValueAsString(eventData));
+
+            log.info("✅ Order {} delivery confirmed, status updated to COMPLETED", orderId);
+
+            return ResponseEntity.ok(ApiResponseDto.builder()
+                    .isSuccess(true)
+                    .message("Delivery confirmed successfully")
+                    .data(order)
+                    .build());
+
+        } catch (Exception e) {
+            log.error("Error confirming delivery for order {}: {}", orderId, e.getMessage());
+            throw new ServiceLogicException("Failed to confirm delivery: " + e.getMessage());
         }
     }
 }

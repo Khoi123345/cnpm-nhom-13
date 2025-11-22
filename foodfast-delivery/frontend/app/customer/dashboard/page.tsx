@@ -90,6 +90,9 @@ export default function CustomerDashboard() {
             <Link href="/customer/orders" className="text-foreground/70 hover:text-foreground">
               My Orders
             </Link>
+            <Link href="/customer/tracking" className="text-foreground/70 hover:text-foreground font-medium">
+              🚁 Theo dõi Drone
+            </Link>
             {/* NÚT MỚI */}
             <button
               onClick={() => setActiveTab("profile")}

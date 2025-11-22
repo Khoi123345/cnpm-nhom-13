@@ -31,6 +31,8 @@ public class Order {
 
     private LocalDateTime placedOn;
 
+    private LocalDateTime deliveredAt; // ⭐️ Thời gian giao hàng thành công
+
     private String restaurantId;
     
     private String restaurantName; // ⭐️ Thêm field lưu tên restaurant

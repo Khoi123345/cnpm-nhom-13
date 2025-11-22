@@ -27,7 +27,10 @@ startSubscriber();
 const app = express();
 
 // --- CÁC MIDDLEWARE CƠ BẢN ---
-app.use(cors()); // Kích hoạt CORS (cấu hình thêm nếu cần)
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  credentials: true
+})); // Kích hoạt CORS với specific origins
 app.use(helmet()); // Sử dụng các header bảo mật mặc định
 app.use(express.json()); // Parse request body dạng JSON
 app.use(express.urlencoded({ extended: false })); // Parse request body dạng URL-encoded

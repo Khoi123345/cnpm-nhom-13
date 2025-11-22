@@ -27,6 +27,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [droneInfo, setDroneInfo] = useState<any>(null);
+  const [orderStatus, setOrderStatus] = useState<string>('');
 
   useEffect(() => {
     loadOrderDetail();
@@ -37,6 +38,7 @@ export default function OrderDetailPage() {
       const response = await ApiClient.get<Order>(`/orders/${orderId}`);
       if (response.data) {
         setOrder(response.data);
+        setOrderStatus(response.data.orderStatus);
 
         // Nếu order đang SHIPPED, get drone info
         if (response.data.orderStatus === 'SHIPPED' || response.data.orderStatus === 'DELIVERED') {
@@ -78,6 +80,12 @@ export default function OrderDetailPage() {
     return colors[status] || 'bg-gray-500';
   };
 
+  const handleDeliveryConfirmed = async () => {
+    // ⭐️ Refresh order detail
+    await loadOrderDetail();
+    setOrderStatus('COMPLETED');
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -111,11 +119,19 @@ export default function OrderDetailPage() {
       </header>
 
       <main className="max-w-6xl mx-auto space-y-6">
+        {/* STATUS DISPLAY */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2">Trạng thái đơn hàng</h2>
+          <Badge className={getStatusColor(orderStatus)}>
+            {orderStatus === 'COMPLETED' ? '✅ ĐÃ HOÀN THÀNH' : orderStatus}
+          </Badge>
+        </div>
+
         {/* Drone Tracking Map */}
         {showDroneTracking && (
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle>🚁 Live Drone Tracking</CardTitle>
+              <CardTitle>🚁 Theo dõi Drone</CardTitle>
             </CardHeader>
             <CardContent>
               <DroneTrackingMap
@@ -125,6 +141,7 @@ export default function OrderDetailPage() {
                 restaurantLng={droneInfo.drone.homeLng}
                 destinationLat={order.destinationLat!}
                 destinationLng={order.destinationLng!}
+                onDeliveryCompleted={handleDeliveryConfirmed}
               />
             </CardContent>
           </Card>
