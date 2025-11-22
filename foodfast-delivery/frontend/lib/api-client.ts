@@ -1,6 +1,6 @@
 // ff/lib/api-client.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+const API_BASE_URL = "http://52.195.195.198:8080"
 
 export interface ApiResponse<T> {
   success: boolean
