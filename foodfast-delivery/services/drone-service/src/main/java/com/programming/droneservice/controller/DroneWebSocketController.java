@@ -113,4 +113,30 @@ public class DroneWebSocketController {
             log.error("Error handling delivery completed event: {}", e.getMessage());
         }
     }
+
+    /**
+     * Drone báo đang trở về cơ sở
+     * Endpoint: /app/drone/return-to-base
+     */
+    @MessageMapping("/drone/return-to-base")
+    public void handleDroneReturnToBase(@Payload Map<String, Object> payload) {
+        try {
+            Long droneId = Long.valueOf(payload.get("droneId").toString());
+            Long orderId = Long.valueOf(payload.get("orderId").toString());
+
+            log.info("🏠 Drone {} is returning to base", droneId);
+
+            // ⭐️ BROADCAST: Drone status change
+            Map<String, Object> response = new HashMap<>();
+            response.put("eventType", "DRONE_RETURNING");
+            response.put("droneId", droneId);
+            response.put("status", "RETURNING");
+            response.put("orderId", orderId);
+
+            messagingTemplate.convertAndSend("/topic/drone/" + droneId, response);
+            log.info("✅ Broadcasted drone return status");
+        } catch (Exception e) {
+            log.error("Error handling drone return event: {}", e.getMessage());
+        }
+    }
 }

@@ -515,4 +515,44 @@ public class OrderServiceImpl implements OrderService {
             throw new ServiceLogicException("Failed to ship order: " + e.getMessage());
         }
     }
+
+    // ⭐️ Xác nhận giao hàng thành công
+    @Override
+    public ResponseEntity<ApiResponseDto<?>> confirmDelivery(Long orderId)
+            throws ServiceLogicException, ResourceNotFoundException {
+        try {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+            // Kiểm tra trạng thái đơn hàng
+            if (order.getOrderStatus() != EOrderStatus.SHIPPED) {
+                throw new ServiceLogicException("Order must be in SHIPPED status to confirm delivery");
+            }
+
+            // Cập nhật trạng thái thành COMPLETED
+            order.setOrderStatus(EOrderStatus.COMPLETED);
+            order.setDeliveredAt(LocalDateTime.now());
+            orderRepository.save(order);
+
+            // Gửi event qua Redis để cập nhật drone status
+            Map<String, Object> eventData = Map.of(
+                "orderId", orderId,
+                "droneId", order.getDroneId(),
+                "event", "DELIVERY_CONFIRMED"
+            );
+            redisTemplate.convertAndSend("drone.events", objectMapper.writeValueAsString(eventData));
+
+            log.info("✅ Order {} delivery confirmed, status updated to COMPLETED", orderId);
+
+            return ResponseEntity.ok(ApiResponseDto.builder()
+                    .isSuccess(true)
+                    .message("Delivery confirmed successfully")
+                    .data(order)
+                    .build());
+
+        } catch (Exception e) {
+            log.error("Error confirming delivery for order {}: {}", orderId, e.getMessage());
+            throw new ServiceLogicException("Failed to confirm delivery: " + e.getMessage());
+        }
+    }
 }

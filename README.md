@@ -98,8 +98,8 @@ docker-compose up -d --build
 
 ### 4️⃣ Truy cập ứng dụng
 
-- 🌐 Frontend: http://localhost:3000  
-- 🚪 API Gateway: http://localhost:8080  
+- 🌐 Frontend: (http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000/) 
+- 🚪 API Gateway: (http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:8080/)
 
 ---
 
