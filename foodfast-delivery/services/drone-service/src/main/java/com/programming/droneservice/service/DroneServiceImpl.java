@@ -19,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -344,7 +346,7 @@ public class DroneServiceImpl implements DroneService {
         
         // ⭐️ THÊM: Publish event để order-service cập nhật order status thành DELIVERED
         try {
-            Map<String, Object> eventData = new java.util.HashMap<>();
+            Map<String, Object> eventData = new HashMap<>();
             eventData.put("orderId", drone.getCurrentOrderId());
             eventData.put("droneId", droneId);
             eventData.put("event", "DRONE_ARRIVED");
