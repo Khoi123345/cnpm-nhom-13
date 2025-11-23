@@ -52,6 +52,8 @@ services:
       - ALLOWED_ORIGINS=http://localhost:3000,http://52.195.195.198:3000,http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000
     volumes:
       - ./services/user-service:/usr/src/app
+      # ⚠️ KHÔI PHỤC: Volume anonymous cho node_modules (bắt buộc để không bị ghi đè)
+      - /usr/src/app/node_modules
     depends_on:
       - db
       - redis
@@ -77,6 +79,8 @@ services:
       - redis
     volumes:
       - ./services/product-service:/usr/src/app
+      # ⚠️ KHÔI PHỤC: Volume anonymous cho node_modules (bắt buộc để không bị ghi đè)
+      - /usr/src/app/node_modules
     command: npm run dev
     networks:
       - backend

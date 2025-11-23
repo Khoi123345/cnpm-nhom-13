@@ -128,7 +128,7 @@ export default function RestaurantDashboard() {
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">FoodFast Restaurant</h1>
+          <h1 className="text-2xl font-bold text-primary">Food Fast - Nhà Hàng</h1>
           <nav className="flex items-center gap-6">
             <button
               onClick={() => setActiveTab("menu")}
@@ -138,7 +138,7 @@ export default function RestaurantDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Menu Management
+              Quản Lý Thực Đơn
             </button>
             <button
               onClick={() => setActiveTab("orders")}
@@ -148,7 +148,7 @@ export default function RestaurantDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Orders
+              Đơn Hàng
             </button>
             <button
               onClick={() => setActiveTab("drones")}
@@ -161,10 +161,10 @@ export default function RestaurantDashboard() {
               🚁 Drones
             </button>
             <Link href="/restaurant/settings" className="text-foreground/70 hover:text-foreground">
-              Settings
+              Cài Đặt
             </Link>
             <Button variant="outline" onClick={handleLogout}>
-              Logout
+              Đăng Xuất
             </Button>
           </nav>
         </div>
@@ -174,21 +174,21 @@ export default function RestaurantDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {activeTab === "menu" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">Manage Your Menu</h2>
+            <h2 className="text-3xl font-bold mb-8">Quản Lý Thực Đơn Của Bạn</h2>
             <MenuManager />
           </div>
         )}
 
         {activeTab === "orders" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">Order Management</h2>
+            <h2 className="text-3xl font-bold mb-8">Quản Lý Đơn Hàng</h2>
             <OrderHandler />
           </div>
         )}
 
         {activeTab === "drones" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">🚁 Drone Fleet Management</h2>
+            <h2 className="text-3xl font-bold mb-8">🚁 Quản Lý Đội Bay Drone</h2>
             <RestaurantDroneManager />
           </div>
         )}

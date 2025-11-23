@@ -41,10 +41,10 @@ export function Navbar({ userRole, onLogout }: NavbarProps) {
               {userRole === "CUSTOMER" && (
                 <>
                   <Link href="/customer/dashboard" className="text-foreground/70 hover:text-foreground">
-                    Browse
+                    Duyệt
                   </Link>
                   <Link href="/customer/orders" className="text-foreground/70 hover:text-foreground">
-                    My Orders
+                    Đơn Hàng Của Tôi
                   </Link>
                 </>
               )}
@@ -52,10 +52,10 @@ export function Navbar({ userRole, onLogout }: NavbarProps) {
               {userRole === "RESTAURANT" && (
                 <>
                   <Link href="/restaurant/dashboard" className="text-foreground/70 hover:text-foreground">
-                    Menu
+                    Thực Đơn
                   </Link>
                   <Link href="/restaurant/settings" className="text-foreground/70 hover:text-foreground">
-                    Settings
+                    Cài Đặt
                   </Link>
                 </>
               )}
@@ -63,26 +63,26 @@ export function Navbar({ userRole, onLogout }: NavbarProps) {
               {userRole === "ADMIN" && (
                 <>
                   <Link href="/admin/dashboard" className="text-foreground/70 hover:text-foreground">
-                    Dashboard
+                    Bảng Điều Khiển
                   </Link>
                   <Link href="/admin/settings" className="text-foreground/70 hover:text-foreground">
-                    Settings
+                    Cài Đặt
                   </Link>
                 </>
               )}
 
               <Button variant="outline" onClick={handleLogout}>
-                Logout
+                Đăng Xuất
               </Button>
             </>
           ) : (
             // --- Dành cho khách (chưa đăng nhập) ---
             <>
               <Button variant="outline" asChild>
-                <Link href="/login">Sign In</Link>
+                <Link href="/login">Đăng Nhập</Link>
               </Button>
               <Button asChild>
-                <Link href="/register">Get Started</Link>
+                <Link href="/register">Đăng Ký</Link>
               </Button>
             </>
           )}

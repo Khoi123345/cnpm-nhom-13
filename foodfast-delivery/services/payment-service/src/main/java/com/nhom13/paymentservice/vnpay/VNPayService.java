@@ -16,7 +16,7 @@ public class VNPayService {
     @Value("${vnpay.url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
     private String vnpUrl;
 
-    @Value("${vnpay.returnUrl:http://localhost:3000/customer/payment-return}")
+    @Value("${vnpay.returnUrl:http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000/customer/payment-return}")
     private String vnpReturnUrl;
 
     @Value("${vnpay.tmnCode:YOUR_TMN_CODE}")

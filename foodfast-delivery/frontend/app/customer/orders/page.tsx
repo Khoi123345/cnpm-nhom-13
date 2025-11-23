@@ -133,11 +133,24 @@ export default function MyOrders() {
     return <Badge className={config.variant}>{config.label}</Badge>;
   };
 
-  const getStatusCount = (status: OrderStatus) => orders.filter(o => o.orderStatus === status).length;
+  const getStatusCount = (status: OrderStatus) => {
+    // "Đã giao" bao gồm cả DELIVERED và COMPLETED
+    if (status === "DELIVERED") {
+      return orders.filter(o => o.orderStatus === "DELIVERED" || o.orderStatus === "COMPLETED").length;
+    }
+    return orders.filter(o => o.orderStatus === status).length;
+  };
   
   // Multi-layer filtering
   const filteredOrders = orders
-    .filter(o => statusFilter === "ALL" || o.orderStatus === statusFilter)
+    .filter(o => {
+      if (statusFilter === "ALL") return true;
+      // "Đã giao" filter bao gồm cả DELIVERED và COMPLETED
+      if (statusFilter === "DELIVERED") {
+        return o.orderStatus === "DELIVERED" || o.orderStatus === "COMPLETED";
+      }
+      return o.orderStatus === statusFilter;
+    })
     .filter(o => {
       if (!searchQuery) return true;
       const query = searchQuery.toLowerCase();

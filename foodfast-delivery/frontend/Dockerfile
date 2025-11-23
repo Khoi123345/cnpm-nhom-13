@@ -1,4 +1,5 @@
 # ---- Base stage ----
+ARG NEXT_PUBLIC_API_URL=http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:8080
 FROM node:20-slim AS base
 
 WORKDIR /app
@@ -37,6 +38,8 @@ RUN npm run build
 
 # ---- Runtime stage ----
 FROM base AS runner
+
+ARG NEXT_PUBLIC_API_URL
 
 # ⭐️ BƯỚC THÊM QUAN TRỌNG 3: Đảm bảo biến có mặt ở Runtime (cho SSR/Client)
 # Nếu bạn không đặt ở đây, Next.js có thể bị lỗi khi chạy

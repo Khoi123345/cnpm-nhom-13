@@ -63,7 +63,7 @@ export default function CustomerDashboard() {
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">FoodFast</h1>
+          <h1 className="text-2xl font-bold text-primary">Food Fast</h1>
           
           {/* ⭐️ SỬA 2: Thêm nút "My Profile" */}
           <nav className="flex items-center gap-6">
@@ -75,7 +75,7 @@ export default function CustomerDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Restaurants
+              Nhà Hàng
             </button>
             <button
               onClick={() => setActiveTab("products")}
@@ -85,10 +85,10 @@ export default function CustomerDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Menu Items
+              Thực Đơn
             </button>
             <Link href="/customer/orders" className="text-foreground/70 hover:text-foreground">
-              My Orders
+              Đơn Hàng Của Tôi
             </Link>
             <Link href="/customer/tracking" className="text-foreground/70 hover:text-foreground font-medium">
               🚁 Theo dõi Drone
@@ -102,11 +102,11 @@ export default function CustomerDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              My Profile
+              Hồ Sơ Của Tôi
             </button>
             
             <Button variant="outline" onClick={handleLogout}>
-              Logout
+              Đăng Xuất
             </Button>
           </nav>
         </div>
@@ -117,14 +117,14 @@ export default function CustomerDashboard() {
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-balance">
             {/* ⭐️ SỬA 3: Cập nhật tiêu đề động */}
-            {activeTab === "restaurants" && "Order from Top Restaurants"}
-            {activeTab === "products" && "Popular Items"}
-            {activeTab === "profile" && "Manage Your Profile"}
+            {activeTab === "restaurants" && "Đặt Hàng Từ Các Nhà Hàng Hàng Đầu"}
+            {activeTab === "products" && "Các Món Phổ Biến"}
+            {activeTab === "profile" && "Quản Lý Hồ Sơ Của Bạn"}
           </h2>
           <p className="text-foreground/70 mt-2">
-            {activeTab === "restaurants" && "Discover amazing food from local restaurants"}
-            {activeTab === "products" && "Browse all available menu items"}
-            {activeTab === "profile" && "Update your personal information and contact details"}
+            {activeTab === "restaurants" && "Khám phá đồ ăn tuyệt vời từ các nhà hàng địa phương"}
+            {activeTab === "products" && "Duyệt tất cả các món ăn hiện có"}
+            {activeTab === "profile" && "Cập nhật thông tin cá nhân và liên hệ của bạn"}
           </p>
         </div>
 

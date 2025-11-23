@@ -17,10 +17,10 @@ spring:
     host: localhost
     port: 6379
 
-  server:
-    port: 8082
-
 # ⭐️ THÊM: Cấu hình URL cho Feign Clients (local)
+server:
+  port: 8082
+
 feign:
   client:
     product-service-url: http://localhost:3002
@@ -46,6 +46,9 @@ spring:
         max-active: 8
         max-idle: 8
         min-idle: 0
+
+server:
+  port: 8082
 
 # ⭐️ THÊM: Cấu hình URL cho Feign Clients (docker)
 feign:
