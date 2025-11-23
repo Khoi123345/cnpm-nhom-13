@@ -60,6 +60,7 @@ public class SecurityConfig {
             .requestMatchers("/actuator/**").permitAll()
             // Allow VNPay endpoints without auth (public endpoints)
             .requestMatchers("/api/payments/vnpay/**").permitAll()
+            .requestMatchers("/api/v1/payments/vnpay/**").permitAll()
             .anyRequest().authenticated()
         )
                 .anonymous(anonymous -> anonymous.disable()); // Disable anonymous filter to truly allow public access
