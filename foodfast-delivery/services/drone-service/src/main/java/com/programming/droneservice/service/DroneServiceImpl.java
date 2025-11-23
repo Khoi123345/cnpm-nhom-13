@@ -342,6 +342,21 @@ public class DroneServiceImpl implements DroneService {
         deliveryLog.setArrivalTime(LocalDateTime.now());
         deliveryLogRepository.save(deliveryLog);
         
+        // ⭐️ THÊM: Publish event để order-service cập nhật order status thành DELIVERED
+        try {
+            Map<String, Object> eventData = new java.util.HashMap<>();
+            eventData.put("orderId", drone.getCurrentOrderId());
+            eventData.put("droneId", droneId);
+            eventData.put("event", "DRONE_ARRIVED");
+            eventData.put("timestamp", LocalDateTime.now().toString());
+            
+            String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(eventData);
+            redisTemplate.convertAndSend("drone.events", json);
+            log.info("✅ Published DRONE_ARRIVED event for order {}", drone.getCurrentOrderId());
+        } catch (Exception e) {
+            log.error("Failed to publish drone arrived event", e);
+        }
+        
         log.info("Drone {} arrived at destination for order {}", droneId, drone.getCurrentOrderId());
     }
     

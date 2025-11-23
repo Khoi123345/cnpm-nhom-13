@@ -64,10 +64,29 @@ export default function DroneTrackingMap({
         // Check if arrived (within 50 meters)
         const arrived = calculateDistance(newLat, newLng, destinationLat, destinationLng) < 0.05;
         
-        if (arrived) {
+        if (arrived && !droneArrived) {
           setDroneArrived(true);
           setDeliveryStatus('ARRIVED');
           clearInterval(interval);
+          
+          // ⭐️ THÊM: Gọi API để đánh dấu drone đã đến và cập nhật order status
+          const apiUrl = typeof window !== "undefined" 
+            ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080")
+            : "http://localhost:8080";
+          
+          fetch(`${apiUrl}/api/v1/drones/internal/drones/${droneId}/arrived`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          .then(res => {
+            if (res.ok) {
+              console.log('✅ Drone marked as arrived, order status should be DELIVERED now');
+            } else {
+              console.error('Failed to mark drone as arrived');
+            }
+          })
+          .catch(err => console.error('Error marking drone arrived:', err));
+          
           return [destinationLat, destinationLng];
         }
 
@@ -80,7 +99,7 @@ export default function DroneTrackingMap({
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [restaurantLat, restaurantLng, destinationLat, destinationLng]);
+  }, [restaurantLat, restaurantLng, destinationLat, destinationLng, droneArrived, droneId]);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const R = 6371;
@@ -167,14 +186,29 @@ export default function DroneTrackingMap({
           <Button
             className="w-full bg-green-600 hover:bg-green-700"
             onClick={async () => {
-              // Call API to confirm delivery
-              const response = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-              });
-              if (response.ok) {
-                alert('✅ Đơn hàng đã được xác nhận! Trạng thái: COMPLETED');
-                onDeliveryCompleted?.();
+              try {
+                // ⭐️ Sử dụng NEXT_PUBLIC_API_URL từ environment, fallback sang localhost
+                const apiUrl = typeof window !== "undefined" 
+                  ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080")
+                  : "http://localhost:8080"
+                
+                const response = await fetch(`${apiUrl}/api/v1/orders/${orderId}/confirm-delivery`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                });
+                if (response.ok) {
+                  alert('✅ Đơn hàng đã được xác nhận! Trạng thái: COMPLETED');
+                  // ⭐️ Redirect về trang orders sau khi xác nhận
+                  if (typeof window !== "undefined") {
+                    window.location.href = '/customer/orders';
+                  }
+                } else {
+                  const error = await response.json();
+                  alert('Error: ' + error.message);
+                }
+              } catch (error) {
+                console.error('Error confirming delivery:', error);
+                alert('Error: ' + error);
               }
             }}
           >

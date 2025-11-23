@@ -35,12 +35,12 @@ export default function OrderDetailPage() {
 
   const loadOrderDetail = async () => {
     try {
-      const response = await ApiClient.get<Order>(`/orders/${orderId}`);
+      const response = await ApiClient.get<Order>(`/api/v1/orders/get/byId?id=${orderId}`);
       if (response.data) {
         setOrder(response.data);
         setOrderStatus(response.data.orderStatus);
 
-        // Nếu order đang SHIPPED, get drone info
+        // Nếu order đang SHIPPED hoặc DELIVERED, get drone info
         if (response.data.orderStatus === 'SHIPPED' || response.data.orderStatus === 'DELIVERED') {
           loadDroneInfo();
         }

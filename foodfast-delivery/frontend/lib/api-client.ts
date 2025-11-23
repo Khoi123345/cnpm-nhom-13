@@ -1,6 +1,9 @@
 // ff/lib/api-client.ts
 
-const API_BASE_URL = "http://52.195.195.198:8080"
+// ⭐️ Sử dụng environment variable, fallback sang localhost nếu không có
+const API_BASE_URL = typeof window !== "undefined" 
+  ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080")
+  : "http://localhost:8080"
 
 export interface ApiResponse<T> {
   success: boolean
