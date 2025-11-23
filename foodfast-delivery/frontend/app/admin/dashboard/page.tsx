@@ -72,7 +72,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">FoodFast Admin</h1>
+          <h1 className="text-2xl font-bold text-primary">Food Fast - Quản Trị</h1>
           <nav className="flex items-center gap-6">
             <button
               onClick={() => setActiveTab("analytics")}
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Analytics
+              Thống Kê
             </button>
             <button
               onClick={() => setActiveTab("users")}
@@ -92,7 +92,7 @@ export default function AdminDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Users
+              Người Dùng
             </button>
             <button
               onClick={() => setActiveTab("restaurants")}
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Restaurants
+              Nhà Hàng
             </button>
             
             {/* ⭐️ 3. THÊM NÚT BẤM TAB ORDERS */}
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
                   : "text-foreground/70 hover:text-foreground"
               }`}
             >
-              Orders
+              Đơn Hàng
             </button>
             
             <button
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
             </button>
             
             <Link href="/admin/settings" className="text-foreground/70 hover:text-foreground">
-              Settings
+              Cài Đặt
             </Link>
             <Button
               variant="outline"
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                 router.push("/")
               }}
             >
-              Logout
+              Đăng Xuất
             </Button>
           </nav>
         </div>
@@ -148,21 +148,21 @@ export default function AdminDashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {activeTab === "analytics" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">Platform Overview</h2>
+            <h2 className="text-3xl font-bold mb-8">Tổng Quan Nền Tảng</h2>
             <PlatformAnalytics />
           </div>
         )}
 
         {activeTab === "users" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">User Management</h2>
+            <h2 className="text-3xl font-bold mb-8">Quản Lý Người Dùng</h2>
             <UserManagement />
           </div>
         )}
 
         {activeTab === "restaurants" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">Restaurant Management</h2>
+            <h2 className="text-3xl font-bold mb-8">Quản Lý Nhà Hàng</h2>
             <RestaurantApproval />
           </div>
         )}
@@ -170,14 +170,14 @@ export default function AdminDashboard() {
         {/* ⭐️ 4. THÊM NỘI DUNG CHO TAB ORDERS */}
         {activeTab === "orders" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">Order Management</h2>
+            <h2 className="text-3xl font-bold mb-8">Quản Lý Đơn Hàng</h2>
             <OrderManagement />
           </div>
         )}
         
         {activeTab === "drones" && (
           <div>
-            <h2 className="text-3xl font-bold mb-8">🚁 Drone Registration Management</h2>
+            <h2 className="text-3xl font-bold mb-8">🚁 Quản Lý Đăng Ký Drone</h2>
             <AdminDroneApproval />
           </div>
         )}

@@ -68,26 +68,26 @@ export default function RegisterPage() {
 
         <Card className="p-8">
           <h1 className="text-2xl font-bold mb-2">
-            {role === "restaurant" ? "Join as Restaurant Partner" : "Sign Up"}
+            {role === "restaurant" ? "Đăng Ký Đối Tác Nhà Hàng" : "Đăng Ký"}
           </h1>
           <p className="text-sm text-foreground/70 mb-6">
             {role === "restaurant"
-              ? "Register your restaurant to start accepting orders"
-              : "Create an account to order delicious food"}
+              ? "Đăng ký nhà hàng của bạn để bắt đầu nhận đơn hàng"
+              : "Tạo tài khoản để đặt món ăn ngon"}
           </p>
 
           {error && <div className="bg-destructive/10 text-destructive p-3 rounded mb-4">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Full Name</label>
+              <label className="block text-sm font-medium mb-2">Họ và Tên</label>
               <input
                 type="text"
                 name="full_name"
                 value={formData.full_name}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                placeholder={role === "restaurant" ? "Restaurant Name" : "Your Name"}
+                placeholder={role === "restaurant" ? "Tên Nhà Hàng" : "Tên của bạn"}
                 required
               />
             </div>
@@ -106,35 +106,35 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Phone</label>
+              <label className="block text-sm font-medium mb-2">Số Điện Thoại</label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                placeholder="+1 (555) 000-0000"
+                placeholder="0912 345 678"
                 required
               />
             </div>
 
             {role === "restaurant" && (
               <div>
-                <label className="block text-sm font-medium mb-2">Restaurant Address</label>
+                <label className="block text-sm font-medium mb-2">Địa Chỉ Nhà Hàng</label>
                 <input
                   type="text"
                   name="restaurant_address"
                   value={formData.restaurant_address}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                  placeholder="123 Main St, City"
+                  placeholder="123 Đường ABC, Quận XYZ, TP.HCM"
                   required
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+              <label className="block text-sm font-medium mb-2">Mật Khẩu</label>
               <input
                 type="password"
                 name="password"
@@ -147,7 +147,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium mb-2">Xác Nhận Mật Khẩu</label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -160,32 +160,32 @@ export default function RegisterPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? "Đang tạo tài khoản..." : "Tạo Tài Khoản"}
             </Button>
           </form>
 
           <div className="mt-6 flex gap-2 justify-center text-sm">
             {role === "restaurant" ? (
               <>
-                <span className="text-foreground/70">Order as customer?</span>
+                <span className="text-foreground/70">Đặt hàng với tư cách khách hàng?</span>
                 <Link href="/register" className="text-primary hover:underline">
-                  Sign up
+                  Đăng ký tại đây
                 </Link>
               </>
             ) : (
               <>
-                <span className="text-foreground/70">Own a restaurant?</span>
+                <span className="text-foreground/70">Bạn là chủ nhà hàng?</span>
                 <Link href="/register?role=restaurant" className="text-primary hover:underline">
-                  Register here
+                  Đăng ký đối tác
                 </Link>
               </>
             )}
           </div>
 
           <p className="text-center text-sm text-foreground/70 mt-4">
-            Already have an account?{" "}
+            Đã có tài khoản?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Sign in
+              Đăng nhập
             </Link>
           </p>
         </Card>

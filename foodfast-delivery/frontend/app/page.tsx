@@ -22,16 +22,16 @@ export default function HomePage() {
     <main className="min-h-screen bg-gradient-to-b from-background to-secondary">
       <nav className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">FoodFast</h1>
+          <h1 className="text-2xl font-bold text-primary">Food Fast</h1>
           <div className="flex gap-4">
             {isAuthenticated ? (
-              <Button onClick={() => router.push("/dashboard")}>Dashboard</Button>
+              <Button onClick={() => router.push("/dashboard")}>Bảng điều khiển</Button>
             ) : (
               <>
                 <Button variant="outline" onClick={() => router.push("/login")}>
-                  Sign In
+                  Đăng Nhập
                 </Button>
-                <Button onClick={() => router.push("/register")}>Get Started</Button>
+                <Button onClick={() => router.push("/register")}>Đăng Ký</Button>
               </>
             )}
           </div>
@@ -40,17 +40,16 @@ export default function HomePage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center space-y-6">
-          <h2 className="text-5xl font-bold text-balance">Fast Food Delivery Made Simple</h2>
+          <h2 className="text-5xl font-bold text-balance">Giao Hàng Nhanh Chóng - Đơn Giản</h2>
           <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
-            Order from your favorite restaurants and get your food delivered in minutes. Join thousands of happy
-            customers today.
+            Đặt món từ các nhà hàng yêu thích và nhận đồ ăn trong vài phút. Tham gia cùng hàng nghìn khách hàng hài lòng hôm nay.
           </p>
           <div className="flex gap-4 justify-center pt-8">
             <Button size="lg" onClick={() => router.push("/register")}>
-              Order Now
+              Đặt Hàng Ngay
             </Button>
             <Button size="lg" variant="outline" onClick={() => router.push("/register?role=restaurant")}>
-              Become a Partner Restaurant
+              Trở Thành Đối Tác Nhà Hàng
             </Button>
           </div>
         </div>
@@ -58,18 +57,18 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
           <div className="bg-card p-8 rounded-lg border border-border">
             <div className="text-4xl font-bold text-primary mb-4">1000+</div>
-            <h3 className="text-xl font-semibold mb-2">Restaurants</h3>
-            <p className="text-foreground/70">Choose from thousands of restaurants</p>
+            <h3 className="text-xl font-semibold mb-2">Nhà Hàng</h3>
+            <p className="text-foreground/70">Chọn từ hàng nghìn nhà hàng</p>
           </div>
           <div className="bg-card p-8 rounded-lg border border-border">
-            <div className="text-4xl font-bold text-primary mb-4">30 Min</div>
-            <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
-            <p className="text-foreground/70">Average delivery time</p>
+            <div className="text-4xl font-bold text-primary mb-4">30 Phút</div>
+            <h3 className="text-xl font-semibold mb-2">Giao Hàng Nhanh</h3>
+            <p className="text-foreground/70">Thời gian giao hàng trung bình</p>
           </div>
           <div className="bg-card p-8 rounded-lg border border-border">
             <div className="text-4xl font-bold text-primary mb-4">4.8★</div>
-            <h3 className="text-xl font-semibold mb-2">Highly Rated</h3>
-            <p className="text-foreground/70">From satisfied customers</p>
+            <h3 className="text-xl font-semibold mb-2">Đánh Giá Cao</h3>
+            <p className="text-foreground/70">Từ khách hàng hài lòng</p>
           </div>
         </div>
       </div>

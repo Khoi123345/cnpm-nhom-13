@@ -39,7 +39,7 @@ export default function LoginPage() {
         </Link>
 
         <Card className="p-8">
-          <h1 className="text-2xl font-bold mb-6">Sign In</h1>
+          <h1 className="text-2xl font-bold mb-6">Đăng Nhập</h1>
 
           {error && <div className="bg-destructive/10 text-destructive p-3 rounded mb-4">{error}</div>}
 
@@ -51,13 +51,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                placeholder="your@email.com"
+                placeholder="email@example.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+              <label className="block text-sm font-medium mb-2">Mật khẩu</label>
               <input
                 type="password"
                 value={password}
@@ -69,14 +69,14 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "Đang đăng nhập..." : "Đăng Nhập"}
             </Button>
           </form>
 
           <p className="text-center text-sm text-foreground/70 mt-6">
-            Don't have an account?{" "}
+            Chưa có tài khoản?{" "}
             <Link href="/register" className="text-primary hover:underline">
-              Sign up
+              Đăng ký ngay
             </Link>
           </p>
         </Card>
