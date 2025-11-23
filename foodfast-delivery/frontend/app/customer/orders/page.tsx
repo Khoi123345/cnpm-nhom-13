@@ -264,13 +264,6 @@ export default function MyOrders() {
             Đã hủy ({getStatusCount("CANCELLED")})
           </Button>
           <Button 
-            variant={statusFilter === "DELIVERED" ? "default" : "outline"} 
-            onClick={() => setStatusFilter("DELIVERED")}
-            size="sm"
-          >
-            Đã giao ({getStatusCount("DELIVERED")})
-          </Button>
-          <Button 
             variant={statusFilter === "COMPLETED" ? "default" : "outline"} 
             onClick={() => setStatusFilter("COMPLETED")}
             size="sm"
@@ -321,8 +314,8 @@ export default function MyOrders() {
                 </Button>
               )}
               {order.orderStatus === "DELIVERED" && ( 
-                <Button className="w-full" onClick={() => handleUpdateStatus(order.id, "COMPLETED")}>
-                  ✅ Xác nhận đã nhận hàng
+                <Button className="w-full" onClick={() => router.push(`/customer/orders/${order.id}`)}>
+                  👀 Xem chi tiết & Xác nhận
                 </Button>
               )}
                {order.orderStatus === "CANCELLATION_REQUESTED" && (
