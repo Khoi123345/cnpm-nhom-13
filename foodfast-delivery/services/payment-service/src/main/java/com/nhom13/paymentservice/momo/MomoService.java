@@ -27,10 +27,10 @@ public class MomoService {
     @Value("${momo.secretKey:SECRET_KEY}")
     private String secretKey;
 
-    @Value("${momo.returnUrl:http://localhost:8085/api/payments/momo/return}")
+    @Value("${momo.returnUrl:http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:8080/api/payments/momo/return}")
     private String returnUrl;
 
-    @Value("${momo.notifyUrl:http://localhost:8085/api/payments/momo/notify}")
+    @Value("${momo.notifyUrl:http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:8080/api/payments/momo/notify}")
     private String notifyUrl;
 
     private final RestTemplate rest = new RestTemplate();

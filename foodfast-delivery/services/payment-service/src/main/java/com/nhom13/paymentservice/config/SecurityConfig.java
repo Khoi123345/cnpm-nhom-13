@@ -75,7 +75,6 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // ⭐️ PRODUCTION: Add EC2 public IP for production deployment
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
             "http://52.195.195.198:3000",
             "http://ec2-52-195-195-198.ap-northeast-1.compute.amazonaws.com:3000"
         ));
