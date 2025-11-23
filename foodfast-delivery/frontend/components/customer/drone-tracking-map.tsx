@@ -58,8 +58,8 @@ export default function DroneTrackingMap({
     // ✅ MOCK: Simulate drone movement
     const interval = setInterval(() => {
       setDronePosition(prev => {
-        const newLat = prev[0] + (destinationLat - restaurantLat) * 0.02;
-        const newLng = prev[1] + (destinationLng - restaurantLng) * 0.02;
+        const newLat = prev[0] + (destinationLat - restaurantLat) * 0.05;
+        const newLng = prev[1] + (destinationLng - restaurantLng) * 0.05;
         
         // Check if arrived (within 50 meters)
         const arrived = calculateDistance(newLat, newLng, destinationLat, destinationLng) < 0.05;
@@ -92,7 +92,7 @@ export default function DroneTrackingMap({
 
         setRoutePath(prev => [...prev, [newLat, newLng]]);
         setBattery(b => Math.max(0, b - 1));
-        setSpeed(30);
+        setSpeed(45);
         
         return [newLat, newLng];
       });
