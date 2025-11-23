@@ -218,7 +218,11 @@ export function OrderHandler() {
       case "CANCELLATION_REQUESTED":
         return <p className="text-sm font-medium text-destructive">Waiting for Admin approval to cancel...</p>;
       case "SHIPPED":
-        return <p className="text-sm font-medium text-blue-600">Waiting for customer to confirm delivery...</p>;
+        return <p className="text-sm font-medium text-blue-600">Đang giao hàng...</p>;
+      case "DELIVERED":
+        return <p className="text-sm font-medium text-green-600">Đã giao - Chờ khách hàng xác nhận</p>;
+      case "COMPLETED":
+        return <Badge className="bg-green-200 text-green-900">✅ Hoàn thành</Badge>;
       default:
         return <p className="text-sm text-foreground/70">{order.orderStatus}</p>;
     }
@@ -368,6 +372,20 @@ export function OrderHandler() {
           size="sm"
         >
           Yêu cầu hủy ({getStatusCount("CANCELLATION_REQUESTED")})
+        </Button>
+        <Button 
+          variant={statusFilter === "DELIVERED" ? "default" : "outline"} 
+          onClick={() => setStatusFilter("DELIVERED")}
+          size="sm"
+        >
+          Đã giao ({getStatusCount("DELIVERED")})
+        </Button>
+        <Button 
+          variant={statusFilter === "COMPLETED" ? "default" : "outline"} 
+          onClick={() => setStatusFilter("COMPLETED")}
+          size="sm"
+        >
+          Hoàn thành ({getStatusCount("COMPLETED")})
         </Button>
       </div>
 

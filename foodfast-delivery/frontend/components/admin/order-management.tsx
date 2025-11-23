@@ -226,6 +226,13 @@ export function OrderManagement() {
         >
           Đã hủy ({getStatusCount("CANCELLED")})
         </Button>
+        <Button 
+          variant={statusFilter === "COMPLETED" ? "default" : "outline"} 
+          onClick={() => setStatusFilter("COMPLETED")}
+          size="sm"
+        >
+          Hoàn thành ({getStatusCount("COMPLETED")})
+        </Button>
       </div>
 
       {/* Yêu cầu hủy */}
