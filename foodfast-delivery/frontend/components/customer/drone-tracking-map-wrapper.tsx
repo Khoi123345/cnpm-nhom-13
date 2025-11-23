@@ -9,6 +9,7 @@ interface DroneTrackingMapProps {
   restaurantLng: number;
   destinationLat: number;
   destinationLng: number;
+  onDeliveryCompleted?: () => void;
 }
 
 // Dynamically import to avoid SSR issues with Leaflet

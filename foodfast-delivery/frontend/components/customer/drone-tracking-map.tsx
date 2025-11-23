@@ -159,14 +159,26 @@ export default function DroneTrackingMap({
           <Button
             className="w-full bg-green-600 hover:bg-green-700"
             onClick={async () => {
-              // Call API to confirm delivery
-              const response = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-              });
-              if (response.ok) {
-                alert('✅ Đơn hàng đã được xác nhận! Trạng thái: COMPLETED');
-                onDeliveryCompleted?.();
+              try {
+                // ⭐️ Sử dụng NEXT_PUBLIC_API_URL từ environment, fallback sang localhost
+                const apiUrl = typeof window !== "undefined" 
+                  ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080")
+                  : "http://localhost:8080"
+                
+                const response = await fetch(`${apiUrl}/api/v1/orders/${orderId}/confirm-delivery`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                });
+                if (response.ok) {
+                  alert('✅ Đơn hàng đã được xác nhận! Trạng thái: COMPLETED');
+                  onDeliveryCompleted?.();
+                } else {
+                  const error = await response.json();
+                  alert('Error: ' + error.message);
+                }
+              } catch (error) {
+                console.error('Error confirming delivery:', error);
+                alert('Error: ' + error);
               }
             }}
           >

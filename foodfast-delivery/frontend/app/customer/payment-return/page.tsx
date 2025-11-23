@@ -33,7 +33,7 @@ function PaymentReturnContent() {
           params.append(key, value)
         })
         
-        const response = await fetch(`http://52.195.195.198:8080/api/payments/vnpay/return?${params.toString()}`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/payments/vnpay/return?${params.toString()}`)
         const backendResult = await response.json()
         
         console.log('Backend payment result:', backendResult)
