@@ -1,6 +1,5 @@
 const productService = require('../services/productService');
 
-// Test CI/CD pipeline - branch: test-ci-pipeline
 class ProductController {
     async getAllProducts(req, res) {
         try {
@@ -11,7 +10,7 @@ class ProductController {
         }
     }
 
-    async getMyProducts(req, res) 
+    async getMyProducts(req, res){ 
         try {
             const ownerId = req.user.id; // Lấy từ token
             const products = await productService.getProductsForOwner(ownerId);
