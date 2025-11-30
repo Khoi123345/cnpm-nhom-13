@@ -21,19 +21,19 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: foodfast-delivery/frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./frontend
+        working-directory: ./foodfast-delivery/frontend
         run: npm ci --legacy-peer-deps
 
       - name: Lint check
-        working-directory: ./frontend
+        working-directory: ./foodfast-delivery/frontend
         run: npm run lint || echo "Lint warnings found"
         continue-on-error: true
 
       - name: Build frontend
-        working-directory: ./frontend
+        working-directory: ./foodfast-delivery/frontend
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:8080
@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: frontend/.next
+          path: foodfast-delivery/frontend/.next
           retention-days: 1
 
   # Job 2: Build và test User Service
@@ -59,14 +59,14 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: services/user-service/package-lock.json
+          cache-dependency-path: foodfast-delivery/services/user-service/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./services/user-service
+        working-directory: ./foodfast-delivery/services/user-service
         run: npm ci --legacy-peer-deps
 
       - name: Run tests (if available)
-        working-directory: ./services/user-service
+        working-directory: ./foodfast-delivery/services/user-service
         run: npm test || echo "No tests configured"
         continue-on-error: true
 
@@ -84,14 +84,14 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: services/product-service/package-lock.json
+          cache-dependency-path: foodfast-delivery/services/product-service/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./services/product-service
+        working-directory: ./foodfast-delivery/services/product-service
         run: npm ci
 
       - name: Run tests (if available)
-        working-directory: ./services/product-service
+        working-directory: ./foodfast-delivery/services/product-service
         run: npm test || echo "No tests configured"
         continue-on-error: true
 
@@ -115,11 +115,11 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        working-directory: ./services/${{ matrix.service }}
+        working-directory: ./foodfast-delivery/services/${{ matrix.service }}
         run: mvn clean package -DskipTests
 
       - name: Run tests
-        working-directory: ./services/${{ matrix.service }}
+        working-directory: ./foodfast-delivery/services/${{ matrix.service }}
         run: mvn test || echo "Tests failed or not configured"
         continue-on-error: true
 
@@ -127,7 +127,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.service }}-jar
-          path: services/${{ matrix.service }}/target/*.jar
+          path: foodfast-delivery/services/${{ matrix.service }}/target/*.jar
           retention-days: 1
 
   # Job 5: Docker Build (chỉ chạy khi merge vào main)
@@ -146,27 +146,27 @@ jobs:
 
       - name: Build Frontend Docker Image
         run: |
-          docker build -t foodfast-frontend:${{ github.sha }} ./frontend
+          docker build -t foodfast-frontend:${{ github.sha }} ./foodfast-delivery/frontend
 
       - name: Build User Service Docker Image
         run: |
-          docker build -t foodfast-user-service:${{ github.sha }} ./services/user-service
+          docker build -t foodfast-user-service:${{ github.sha }} ./foodfast-delivery/services/user-service
 
       - name: Build Product Service Docker Image
         run: |
-          docker build -t foodfast-product-service:${{ github.sha }} ./services/product-service
+          docker build -t foodfast-product-service:${{ github.sha }} ./foodfast-delivery/services/product-service
 
       - name: Build Order Service Docker Image
         run: |
-          docker build -t foodfast-order-service:${{ github.sha }} ./services/order-service
+          docker build -t foodfast-order-service:${{ github.sha }} ./foodfast-delivery/services/order-service
 
       - name: Build Payment Service Docker Image
         run: |
-          docker build -t foodfast-payment-service:${{ github.sha }} ./services/payment-service
+          docker build -t foodfast-payment-service:${{ github.sha }} ./foodfast-delivery/services/payment-service
 
       - name: Build Drone Service Docker Image
         run: |
-          docker build -t foodfast-drone-service:${{ github.sha }} ./services/drone-service
+          docker build -t foodfast-drone-service:${{ github.sha }} ./foodfast-delivery/services/drone-service
 
   # Job 6: Auto Deploy to EC2
   deploy-to-ec2:
