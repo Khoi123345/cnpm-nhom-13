@@ -3,14 +3,15 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copy pom.xml and source code
 COPY pom.xml .
-RUN apt-get update && apt-get install -y maven
-RUN mvn dependency:go-offline -B
-
-# Copy source code and build
 COPY src ./src
-RUN mvn clean package -DskipTests
+
+# Install Maven and build with retry logic
+RUN apt-get update && apt-get install -y maven && \
+    (mvn clean package -DskipTests -B || \
+    (echo "Retry 1..." && sleep 5 && mvn clean package -DskipTests -B) || \
+    (echo "Retry 2..." && sleep 10 && mvn clean package -DskipTests -B))
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre

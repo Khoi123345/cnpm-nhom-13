@@ -2,13 +2,16 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-# Copy pom.xml và download dependencies
+# Copy pom.xml trước để cache dependencies
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 
-# Copy source code và build
+# Copy source code
 COPY src ./src
-RUN mvn clean package -DskipTests
+
+# Build với retry logic để xử lý network issues
+RUN mvn clean package -DskipTests -B || \
+    (echo "Retry 1..." && sleep 5 && mvn clean package -DskipTests -B) || \
+    (echo "Retry 2..." && sleep 10 && mvn clean package -DskipTests -B)
 
 # Runtime stage
 FROM eclipse-temurin:21-jre

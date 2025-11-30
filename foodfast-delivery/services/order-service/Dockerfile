@@ -2,7 +2,9 @@ FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -B || \
+    (echo "Retry 1..." && sleep 5 && mvn clean package -DskipTests -B) || \
+    (echo "Retry 2..." && sleep 10 && mvn clean package -DskipTests -B)
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
