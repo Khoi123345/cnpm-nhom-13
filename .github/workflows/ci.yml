@@ -65,6 +65,13 @@ jobs:
         working-directory: ./foodfast-delivery/services/user-service
         run: npm ci --legacy-peer-deps
 
+      - name: Syntax check with Node
+        working-directory: ./foodfast-delivery/services/user-service
+        run: |
+          for file in $(find src -name '*.js'); do
+            node --check $file || exit 1
+          done
+
       - name: Run tests (if available)
         working-directory: ./foodfast-delivery/services/user-service
         run: npm test || echo "No tests configured"
@@ -90,6 +97,13 @@ jobs:
         working-directory: ./foodfast-delivery/services/product-service
         run: npm ci
 
+      - name: Syntax check with Node
+        working-directory: ./foodfast-delivery/services/product-service
+        run: |
+          for file in $(find src -name '*.js'); do
+            node --check $file || exit 1
+          done
+
       - name: Run tests (if available)
         working-directory: ./foodfast-delivery/services/product-service
         run: npm test || echo "No tests configured"
@@ -114,9 +128,13 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Compile check (syntax validation)
+        working-directory: ./foodfast-delivery/services/${{ matrix.service }}
+        run: mvn clean compile
+
       - name: Build with Maven
         working-directory: ./foodfast-delivery/services/${{ matrix.service }}
-        run: mvn clean package -DskipTests
+        run: mvn package -DskipTests
 
       - name: Run tests
         working-directory: ./foodfast-delivery/services/${{ matrix.service }}
