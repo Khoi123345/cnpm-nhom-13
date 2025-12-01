@@ -30,4 +30,10 @@ const productSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
+// ⭐️ Middleware: Khi xóa Restaurant thì tự động xóa tất cả Product thuộc Restaurant đó
+productSchema.pre('deleteMany', async function(next) {
+    // Hook này sẽ chạy khi gọi Product.deleteMany({ restaurant: restaurantId })
+    next();
+});
+
 exports.Product = mongoose.model('Product', productSchema);

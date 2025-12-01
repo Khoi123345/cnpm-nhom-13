@@ -49,7 +49,17 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private EOrderPaymentStatus paymentStatus;
 
+    /**
+     * ⭐️ CASCADE.ALL + orphanRemoval: Khi xóa Order thì tự động xóa OrderItems
+     * foreignKey constraint: ON DELETE CASCADE ở DB level
+     */
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(
+        name = "order_id",
+        foreignKey = @ForeignKey(
+            name = "fk_order_items_order",
+            foreignKeyDefinition = "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE"
+        )
+    )
     private Set<OrderItems> orderItems;
 }

@@ -40,9 +40,18 @@ public class DeliveryLog {
     
     /**
      * Drone thực hiện chuyến bay này
+     * ⭐️ onDelete = SET_NULL: Khi xóa Drone, giữ lại log nhưng set drone_id = NULL
+     * (để audit trail, không mất lịch sử giao hàng)
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "drone_id", nullable = false)
+    @JoinColumn(
+        name = "drone_id",
+        nullable = true,  // Cho phép NULL sau khi drone bị xóa
+        foreignKey = @ForeignKey(
+            name = "fk_delivery_log_drone",
+            foreignKeyDefinition = "FOREIGN KEY (drone_id) REFERENCES drones(id) ON DELETE SET NULL"
+        )
+    )
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Drone drone;
     
