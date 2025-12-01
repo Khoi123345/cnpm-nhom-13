@@ -109,23 +109,23 @@ export function PlatformAnalytics() {
     )
   }
 
-  // ⭐️ SỬA ĐỔI: Dùng dữ liệu động
+  // ⭐️ SỬA ĐỔI: Dùng dữ liệu động với null checks
   const statCards = [
     {
       title: "Total Users",
-      value: stats?.totalUsers.toLocaleString() ?? "0", // Dùng dữ liệu từ state
+      value: stats?.totalUsers != null ? stats.totalUsers.toLocaleString() : "0", // Dùng dữ liệu từ state
       change: "+12% this month", // (Phần trăm thay đổi vẫn đang là "cứng")
       color: "text-blue-600",
     },
     {
       title: "Active Restaurants",
-      value: stats?.activeRestaurants.toLocaleString() ?? "0", // Dùng dữ liệu từ state
+      value: stats?.activeRestaurants != null ? stats.activeRestaurants.toLocaleString() : "0", // Dùng dữ liệu từ state
       change: "+8% this month",
       color: "text-green-600",
     },
     {
       title: "Total Orders",
-      value: stats?.totalOrders.toLocaleString() ?? "0", // Dùng dữ liệu từ state
+      value: stats?.totalOrders != null ? stats.totalOrders.toLocaleString() : "0", // Dùng dữ liệu từ state
       change: "+25% this month",
       color: "text-purple-600",
     },
