@@ -58,8 +58,8 @@ export default function DroneTrackingPage() {
 
     loadActiveDeliveries();
     
-    // Refresh every 10 seconds
-    const interval = setInterval(loadActiveDeliveries, 10000);
+    // ⭐️ Refresh every 5 seconds for real-time updates
+    const interval = setInterval(loadActiveDeliveries, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -198,20 +198,20 @@ export default function DroneTrackingPage() {
 
           {/* Right side: Live map tracking */}
           <div className="lg:col-span-2">
-            {selectedOrder && selectedOrder.deliveryLog && selectedOrder.destinationLat && selectedOrder.destinationLng ? (
+            {selectedOrder && selectedOrder.deliveryLog && selectedOrder.deliveryLog.drone && selectedOrder.destinationLat && selectedOrder.destinationLng ? (
               <Card>
                 <CardHeader>
                   <CardTitle>🗺️ Theo dõi trực tiếp - Đơn hàng #{selectedOrder.id}</CardTitle>
                   <p className="text-sm text-gray-500">
-                    Drone {selectedOrder.deliveryLog.drone.name} đang giao hàng đến {selectedOrder.addressShip}
+                    Drone {selectedOrder.deliveryLog.drone?.name || 'Unknown'} đang giao hàng đến {selectedOrder.addressShip}
                   </p>
                 </CardHeader>
                 <CardContent>
                   <DroneTrackingMap
-                    droneId={selectedOrder.deliveryLog.drone.id}
+                    droneId={selectedOrder.deliveryLog.drone?.id || 0}
                     orderId={selectedOrder.id}
-                    restaurantLat={selectedOrder.deliveryLog.drone.homeLat}
-                    restaurantLng={selectedOrder.deliveryLog.drone.homeLng}
+                    restaurantLat={selectedOrder.deliveryLog.drone?.homeLat || 0}
+                    restaurantLng={selectedOrder.deliveryLog.drone?.homeLng || 0}
                     destinationLat={selectedOrder.destinationLat}
                     destinationLng={selectedOrder.destinationLng}
                     userRole="CUSTOMER" // ⭐️ Pass role for customer

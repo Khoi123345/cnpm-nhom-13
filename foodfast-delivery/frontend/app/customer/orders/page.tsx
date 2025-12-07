@@ -106,6 +106,13 @@ export default function MyOrders() {
 
   useEffect(() => {
     fetchOrders()
+    
+    // ⭐️ POLLING: Refresh orders mỗi 5 giây để cập nhật trạng thái drone real-time
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => clearInterval(interval); // Cleanup interval on unmount
   }, []) // Bỏ router, chỉ fetch 1 lần
 
   const handleLogout = () => {
