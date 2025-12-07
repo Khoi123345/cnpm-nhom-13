@@ -91,6 +91,7 @@ export default function DroneTrackingMap({
         }
       }
     }
+  }, [userRole]);
 
   useEffect(() => {
     // ✅ MOCK: Simulate drone movement
