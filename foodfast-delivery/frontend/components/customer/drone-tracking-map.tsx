@@ -206,7 +206,7 @@ export default function DroneTrackingMap({
     return () => {
       if (returnInterval) clearInterval(returnInterval);
     };
-  }, [isReturning, restaurantLat, restaurantLng, droneId];
+  }, [isReturning, restaurantLat, restaurantLng, droneId]);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
     const R = 6371;
