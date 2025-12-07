@@ -10,6 +10,7 @@ interface DroneTrackingMapProps {
   destinationLat: number;
   destinationLng: number;
   onDeliveryCompleted?: () => void;
+  userRole?: string; // ⭐️ Thêm prop role
 }
 
 // Dynamically import to avoid SSR issues with Leaflet
