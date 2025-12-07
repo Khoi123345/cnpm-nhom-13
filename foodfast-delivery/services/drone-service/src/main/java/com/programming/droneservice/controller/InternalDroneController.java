@@ -75,4 +75,14 @@ public class InternalDroneController {
         droneService.markDroneReturnedToBase(droneId);
         return ResponseEntity.ok(ApiResponseDto.success("Drone returned to base and is now IDLE", null));
     }
+    
+    /**
+     * ⭐️ THÊM: Đánh dấu drone đã quay về restaurant (alias cho /returned-to-base)
+     * Gọi từ frontend drone-tracking-map.tsx
+     */
+    @PostMapping("/drones/{droneId}/returned")
+    public ResponseEntity<ApiResponseDto<Void>> markDroneReturned(@PathVariable Long droneId) {
+        droneService.markDroneReturnedToBase(droneId);
+        return ResponseEntity.ok(ApiResponseDto.success("Drone returned to base and is now IDLE", null));
+    }
 }
