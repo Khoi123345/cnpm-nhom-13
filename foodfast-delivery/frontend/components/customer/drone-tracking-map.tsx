@@ -148,7 +148,7 @@ export default function DroneTrackingMap({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [restaurantLat, restaurantLng, destinationLat, destinationLng, droneId];
+  }, [restaurantLat, restaurantLng, destinationLat, destinationLng, droneId]);
 
   // ⭐️ EFFECT: Xử lý drone bay về nhà hàng
   useEffect(() => {
