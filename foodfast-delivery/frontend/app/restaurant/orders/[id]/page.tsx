@@ -129,6 +129,7 @@ export default function RestaurantOrderDetailPage() {
                 restaurantLng={droneInfo.drone.homeLng}
                 destinationLat={order.destinationLat!}
                 destinationLng={order.destinationLng!}
+                userRole="RESTAURANT" // ⭐️ Pass role for restaurant
               />
             </CardContent>
           </Card>

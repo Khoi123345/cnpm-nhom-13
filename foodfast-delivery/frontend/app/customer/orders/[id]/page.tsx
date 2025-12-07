@@ -142,6 +142,7 @@ export default function OrderDetailPage() {
                 destinationLat={order.destinationLat!}
                 destinationLng={order.destinationLng!}
                 onDeliveryCompleted={handleDeliveryConfirmed}
+                userRole="CUSTOMER" // ⭐️ Pass role for customer
               />
             </CardContent>
           </Card>

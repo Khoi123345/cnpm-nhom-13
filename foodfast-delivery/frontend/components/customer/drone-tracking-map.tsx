@@ -15,6 +15,7 @@ interface DroneTrackingMapProps {
   destinationLat: number;
   destinationLng: number;
   onDeliveryCompleted?: () => void;
+  userRole?: string; // ⭐️ Thêm prop role
 }
 
 // ⭐️ CUSTOM DRONE ICON
@@ -44,6 +45,7 @@ export default function DroneTrackingMap({
   destinationLat,
   destinationLng,
   onDeliveryCompleted,
+  userRole, // ⭐️ Nhận role từ props
 }: DroneTrackingMapProps) {
   const [dronePosition, setDronePosition] = useState<[number, number]>([restaurantLat, restaurantLng]);
   const [routePath, setRoutePath] = useState<[number, number][]>([[restaurantLat, restaurantLng]]);
@@ -54,12 +56,14 @@ export default function DroneTrackingMap({
   const [deliveryStatus, setDeliveryStatus] = useState('IN_FLIGHT');
   const [droneArrived, setDroneArrived] = useState(false);
   const [isReturning, setIsReturning] = useState(false); // ⭐️ Theo dõi trạng thái drone bay về
-  const [userRole, setUserRole] = useState<string | null>(null); // ⭐️ Kiểm tra role của user
+  const [resolvedRole, setResolvedRole] = useState<string | null>(userRole || null); // ⭐️ Sử dụng role từ props
 
   useEffect(() => {
-    // ⭐️ LẤY ROLE CỦA USER TỪ LOCALSTORAGE
-    if (typeof window !== 'undefined') {
-      // Kiểm tra customer user
+    // ⭐️ RESOLVE ROLE: Từ props hoặc từ localStorage
+    if (userRole) {
+      setResolvedRole(userRole);
+    } else if (typeof window !== 'undefined') {
+      // Nếu không có props, lấy từ localStorage
       const customerUser = localStorage.getItem('customer_user');
       const restaurantUser = localStorage.getItem('restaurant_user');
       const adminUser = localStorage.getItem('admin_user');
@@ -67,27 +71,27 @@ export default function DroneTrackingMap({
       if (customerUser) {
         try {
           const user = JSON.parse(customerUser);
-          setUserRole(user.role || 'CUSTOMER');
+          setResolvedRole(user.role || 'CUSTOMER');
         } catch (e) {
-          setUserRole('CUSTOMER');
+          setResolvedRole('CUSTOMER');
         }
       } else if (restaurantUser) {
         try {
           const user = JSON.parse(restaurantUser);
-          setUserRole(user.role || 'RESTAURANT');
+          setResolvedRole(user.role || 'RESTAURANT');
         } catch (e) {
-          setUserRole('RESTAURANT');
+          setResolvedRole('RESTAURANT');
         }
       } else if (adminUser) {
         try {
           const user = JSON.parse(adminUser);
-          setUserRole(user.role || 'ADMIN');
+          setResolvedRole(user.role || 'ADMIN');
         } catch (e) {
-          setUserRole('ADMIN');
+          setResolvedRole('ADMIN');
         }
       }
     }
-  }, []);
+  }, [userRole]);
 
   useEffect(() => {
     // ✅ MOCK: Simulate drone movement
@@ -285,7 +289,7 @@ export default function DroneTrackingMap({
       </div>
 
       {/* ⭐️ CONFIRMATION BUTTON - Khi drone đến nơi, CHỈ CHO CUSTOMER */}
-      {droneArrived && !isReturning && userRole === 'CUSTOMER' && (
+      {droneArrived && !isReturning && resolvedRole === 'CUSTOMER' && (
         <div className="bg-green-50 border-2 border-green-300 p-4 rounded-lg">
           <p className="text-sm font-semibold text-green-700 mb-3">
             ✅ Drone đã đến điểm giao hàng!
@@ -323,7 +327,7 @@ export default function DroneTrackingMap({
       )}
 
       {/* ⭐️ THÔNG BÁO - Khi drone đã đến nhưng user không phải customer */}
-      {droneArrived && !isReturning && userRole !== 'CUSTOMER' && (
+      {droneArrived && !isReturning && resolvedRole !== 'CUSTOMER' && (
         <div className="bg-blue-50 border-2 border-blue-300 p-4 rounded-lg">
           <p className="text-sm font-semibold text-blue-700 mb-3">
             ✅ Drone đã đến điểm giao hàng!

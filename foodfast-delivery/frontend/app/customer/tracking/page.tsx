@@ -183,7 +183,7 @@ export default function DroneTrackingPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  {order.deliveryLog && (
+                  {order.deliveryLog?.drone && (
                     <div className="space-y-1 text-sm">
                       <p>🚁 Drone: {order.deliveryLog.drone.name}</p>
                       <p>📍 {order.addressShip}</p>
@@ -214,6 +214,7 @@ export default function DroneTrackingPage() {
                     restaurantLng={selectedOrder.deliveryLog.drone.homeLng}
                     destinationLat={selectedOrder.destinationLat}
                     destinationLng={selectedOrder.destinationLng}
+                    userRole="CUSTOMER" // ⭐️ Pass role for customer
                   />
                 </CardContent>
               </Card>
