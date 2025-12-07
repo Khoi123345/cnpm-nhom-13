@@ -18,7 +18,11 @@ interface Order {
   orderStatus: OrderStatus
   addressShip: string
   orderAmt: number
-  placedOn: string 
+  placedOn: string
+  deliveryLog?: any // ⭐️ Thêm optional deliveryLog
+  destinationLat?: number
+  destinationLng?: number
+  droneId?: number | null
 }
 
 export default function MyOrders() {
@@ -68,7 +72,17 @@ export default function MyOrders() {
       if (response.success) {
         // Sắp xếp đơn hàng mới nhất lên đầu
         const sorted = (response.data || []).sort((a, b) => new Date(b.placedOn).getTime() - new Date(a.placedOn).getTime());
-        setOrders(sorted)
+        console.log('📦 Orders fetched:', sorted); // ⭐️ Logging
+        // ⭐️ FILTER: Bộ lọc null safety
+        const cleanedOrders = sorted.filter(order => {
+          try {
+            return order && order.id !== null;
+          } catch (e) {
+            console.warn('⚠️ Invalid order:', order, e);
+            return false;
+          }
+        });
+        setOrders(cleanedOrders)
       } else {
         if (response.message.includes("No orders found")) {
           setOrders([])
@@ -77,6 +91,7 @@ export default function MyOrders() {
         }
       }
     } catch (err: any) {
+      console.error('❌ Error fetching orders:', err);
       setError(err.message)
     } finally {
       setLoading(false)
@@ -296,7 +311,13 @@ export default function MyOrders() {
             </Card>
           )}
 
-          {paginatedOrders.map((order) => (
+          {paginatedOrders.map((order) => {
+            // ⭐️ NULL SAFETY: Skip invalid orders
+            if (!order || !order.id) {
+              console.warn('⚠️ Skipping invalid order:', order);
+              return null;
+            }
+            return (
             <Card key={order.id} className="p-6">
               <div className="flex justify-between items-start mb-2">
                 <div>
@@ -329,7 +350,8 @@ export default function MyOrders() {
                 <p className="text-sm text-center text-destructive">Nhà hàng yêu cầu hủy đơn. Admin đang xem xét.</p>
               )}
             </Card>
-          ))}
+            );
+          })}
         </div>
 
         {/* Pagination Controls */}
